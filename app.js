@@ -7,14 +7,14 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAbuekJkyQE_eXfOHrrzcwPv1WLREimE6s",
-  authDomain: "lockers-research000.firebaseapp.com",
-  databaseURL: "https://lockers-research000-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "lockers-research000",
-  storageBucket: "lockers-research000.firebasestorage.app",
-  messagingSenderId: "799237849292",
-  appId: "1:799237849292:web:91b561d974731c6b7fc269",
-  measurementId: "G-M4WTDG3LYH"
+  apiKey: "AIzaSyBGJYr6SO5CkZnH7BbV6hNVJvTawgSG06A",
+  authDomain: "smartlockers-3db.firebaseapp.com",
+  databaseURL: "https://smartlockers-3db-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smartlockers-3db",
+  storageBucket: "smartlockers-3db.firebasestorage.app",
+  messagingSenderId: "520847943348",
+  appId: "1:520847943348:web:4607d98544acd4e92719e1",
+  measurementId: "G-9D1Q7DT5E2"
 };
 
 // Initialize Firebase
