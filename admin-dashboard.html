@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - IoT Locker System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Admin Dashboard</h1>
+                <div class="user-info">
+                    <span class="user-email" id="user-email">admin@gmail.com</span>
+                    <button id="logout-btn" class="btn-logout">Logout</button>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="overview">Overview</button>
+                <button class="tab-btn" data-tab="history">Access History</button>
+                <button class="tab-btn" data-tab="alerts">Alerts</button>
+                <button class="tab-btn" data-tab="users">User Management</button>
+            </div>
+            
+            <div id="overview" class="tab-content active">
+                <h2>Lockers Status</h2>
+                <div class="lockers-grid" id="lockers-grid">
+                    <!-- Locker cards will be dynamically added here -->
+                </div>
+            </div>
+            
+            <div id="history" class="tab-content">
+                <h2>Access History</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Locker</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- History entries will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="alerts" class="tab-content">
+                <h2>Alert History</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Locker</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-table-body">
+                            <!-- Alert entries will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="users" class="tab-content">
+                <h2>User Management</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Name</th>
+                                <th>Assigned Locker</th>
+                                <th>RFID Tag</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- User entries will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAYNaN-zT3d0QggsZaphN8vYMdZFGXE98",
+            databaseURL: "https://iotlockers-36e7c-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "iotlockers-36e7c",
+            authDomain: "iotlockers-36e7c.firebaseapp.com",
+            storageBucket: "iotlockers-36e7c.appspot.com",
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Check if user is logged in and is admin
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('user-email').textContent = user.email;
+                
+                // Check if admin
+                if (user.email !== 'admin@gmail.com') {
+                    window.location.href = 'user-dashboard.html';
+                } else {
+                    loadLockerData();
+                    loadHistoryData();
+                    loadAlertData();
+                    loadUserData();
+                }
+            } else {
+                // Not logged in, redirect to login page
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+            });
+        });
+
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                tabButtons.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Load locker data from Firebase
+        function loadLockerData() {
+            const lockersRef = database.ref('lockers');
+            lockersRef.on('value', (snapshot) => {
+                const lockerData = snapshot.val();
+                const lockersGrid = document.getElementById('lockers-grid');
+                lockersGrid.innerHTML = '';  // Clear existing locker cards
+                
+                // Create a card for each locker
+                for (const [lockerId, locker] of Object.entries(lockerData)) {
+                    const lockerCard = document.createElement('div');
+                    lockerCard.className = 'locker-card';
+                    
+                    // Format date for last access
+                    let lastAccessTime = 'No access yet';
+                    if (locker.accessLog) {
+                        const accessLogEntries = Object.entries(locker.accessLog);
+                        if (accessLogEntries.length > 0) {
+                            // Sort by timestamp (newest first)
+                            accessLogEntries.sort((a, b) => 
+                                new Date(b[1].time) - new Date(a[1].time)
+                            );
+                            const latestAccess = accessLogEntries[0][1];
+                            lastAccessTime = new Date(latestAccess.time).toLocaleString();
+                        }
+                    }
+                    
+                    // Format temperature, humidity and gas level
+                    const temperature = locker.temperature?.toFixed(1) || 'N/A';
+                    const humidity = locker.humidity?.toFixed(1) || 'N/A';
+                    const gasLevel = locker.gasLevel || 'N/A';
+                    
+                    // Check for alerts
+                    let alertHtml = '';
+                    if ((locker.temperature && locker.temperature >= 37.0) || 
+                        (locker.gasLevel && locker.gasLevel >= 1800)) {
+                        alertHtml = `<div class="locker-alert">
+                            <strong>ALERT:</strong> Abnormal conditions detected!
+                        </div>`;
+                    }
+                    
+                    lockerCard.innerHTML = `
+                        <div class="locker-header">
+                            <h3>Locker ${lockerId}</h3>
+                            <span class="locker-status ${locker.isOpen ? 'status-open' : 'status-closed'}">
+                                ${locker.isOpen ? 'Open' : 'Closed'}
+                            </span>
+                        </div>
+                        <div class="locker-body">
+                            <div class="locker-info">
+                                <p>Temperature: <span>${temperature}°C</span></p>
+                                <p>Humidity: <span>${humidity}%</span></p>
+                                <p>Gas Level: <span>${gasLevel}</span></p>
+                                <p>Last Access: <span>${lastAccessTime}</span></p>
+                                <p>Assigned To: <span id="locker-${lockerId}-user">Loading...</span></p>
+                            </div>
+                            ${alertHtml}
+                        </div>
+                    `;
+                    
+                    lockersGrid.appendChild(lockerCard);
+                    
+                    // Fetch assigned user information
+                    if (locker.assignedTo) {
+                        database.ref(`users/${locker.assignedTo}`).once('value', (userSnapshot) => {
+                            const userData = userSnapshot.val();
+                            if (userData) {
+                                document.getElementById(`locker-${lockerId}-user`).textContent = 
+                                    userData.email || 'Unknown';
+                            }
+                        });
+                    } else {
+                        document.getElementById(`locker-${lockerId}-user`).textContent = 'Unassigned';
+                    }
+                }
+            });
+        }
+
+        // Load access history data
+        function loadHistoryData() {
+            database.ref('lockers').on('value', (snapshot) => {
+                const lockersData = snapshot.val();
+                const historyTableBody = document.getElementById('history-table-body');
+                historyTableBody.innerHTML = '';  // Clear existing history entries
+                
+                // Process each locker's access log
+                for (const [lockerId, locker] of Object.entries(lockersData)) {
+                    if (locker.accessLog) {
+                        // Convert access log to array of entries with ID
+                        const accessEntries = Object.entries(locker.accessLog).map(([id, entry]) => ({
+                            id,
+                            lockerId,
+                            ...entry
+                        }));
+                        
+                        // Process each access entry
+                        accessEntries.forEach(entry => {
+                            const row = document.createElement('tr');
+                            
+                            // Format the time
+                            const accessTime = new Date(entry.time).toLocaleString();
+                            
+                            row.innerHTML = `
+                                <td>Locker ${entry.lockerId}</td>
+                                <td>${entry.user || 'Unknown'}</td>
+                                <td>${entry.action.charAt(0).toUpperCase() + entry.action.slice(1)}</td>
+                                <td>${accessTime}</td>
+                            `;
+                            
+                            historyTableBody.appendChild(row);
+                        });
+                    }
+                }
+                
+                // Sort the table by timestamp (newest first)
+                sortTable(historyTableBody, 3, true);
+            });
+        }
+
+        // Load alert history data
+        function loadAlertData() {
+            database.ref('lockers').on('value', (snapshot) => {
+                const lockersData = snapshot.val();
+                const alertsTableBody = document.getElementById('alerts-table-body');
+                alertsTableBody.innerHTML = '';  // Clear existing alert entries
+                
+                // Process each locker's alerts
+                for (const [lockerId, locker] of Object.entries(lockersData)) {
+                    if (locker.alerts) {
+                        // Convert alerts to array of entries with ID
+                        const alertEntries = Object.entries(locker.alerts).map(([id, alert]) => ({
+                            id,
+                            lockerId,
+                            ...alert
+                        }));
+                        
+                        // Process each alert entry
+                        alertEntries.forEach(alert => {
+                            const row = document.createElement('tr');
+                            
+                            // Format the time
+                            const alertTime = new Date(alert.time).toLocaleString();
+                            
+                            // Format the value based on type
+                            let formattedValue = alert.value;
+                            if (alert.type === 'temperature') {
+                                formattedValue = `${alert.value.toFixed(1)}°C`;
+                            } else if (alert.type === 'gas') {
+                                formattedValue = alert.value;
+                            }
+                            
+                            row.innerHTML = `
+                                <td>Locker ${alert.lockerId}</td>
+                                <td>${alert.type.charAt(0).toUpperCase() + alert.type.slice(1)}</td>
+                                <td>${formattedValue}</td>
+                                <td>${alertTime}</td>
+                            `;
+                            
+                            alertsTableBody.appendChild(row);
+                        });
+                    }
+                }
+                
+                // Sort the table by timestamp (newest first)
+                sortTable(alertsTableBody, 3, true);
+            });
+        }
+
+        // Load user data
+        function loadUserData() {
+            database.ref('users').on('value', (snapshot) => {
+                const usersData = snapshot.val();
+                const usersTableBody = document.getElementById('users-table-body');
+                usersTableBody.innerHTML = '';  // Clear existing user entries
+                
+                // Create a row for each user
+                for (const [userId, user] of Object.entries(usersData)) {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.assignedLocker || 'None'}</td>
+                        <td>${user.rfidTag || 'Not assigned'}</td>
+                    `;
+                    
+                    usersTableBody.appendChild(row);
+                }
+            });
+        }
+
+        // Helper function to sort table by column
+        function sortTable(tbody, colIndex, dateSort = false) {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                const aVal = a.cells[colIndex].textContent.trim();
+                const bVal = b.cells[colIndex].textContent.trim();
+                
+                if (dateSort) {
+                    return new Date(bVal) - new Date(aVal); // Newest first
+                } else {
+                    return aVal.localeCompare(bVal);
+                }
+            });
+            
+            // Re-append rows in sorted order
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>
