@@ -4,340 +4,1167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Locker System</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary-color: #87CEEB; /* Sky Blue */
+            --secondary-color: #FFA500; /* Orange */
+            --accent-color: #FFFF00; /* Yellow */
+            --dark-color: #333;
+            --light-color: #f4f4f4;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f8ff;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 0.5rem;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 1rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #e69500;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .auth-section {
+            padding: 3rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 136px);
+        }
+        
+        .auth-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .auth-container h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-footer .btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+        
+        .dashboard {
+            padding: 2rem 0;
+        }
+        
+        .dashboard-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-header h2 {
+            color: var(--primary-color);
+        }
+        
+        .lockers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .locker-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .locker-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .locker-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .locker-card h3 span.status {
+            font-size: 0.9rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .status-open {
+            background-color: var(--secondary-color);
+        }
+        
+        .status-closed {
+            background-color: var(--success-color);
+        }
+        
+        .status-maintenance {
+            background-color: var(--danger-color);
+        }
+        
+        .locker-details {
+            margin-bottom: 1rem;
+        }
+        
+        .locker-details p {
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .locker-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+        
+        .history-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .history-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .remote-control {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .remote-control h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .remote-form {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .remote-form input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .alert-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .alert-success {
+            background-color: var(--success-color);
+        }
+        
+        .alert-warning {
+            background-color: var(--warning-color);
+            color: var(--dark-color);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 2rem;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 80%;
+            max-width: 500px;
+            animation: modalopen 0.5s;
+        }
+        
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-50px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-modal:hover {
+            color: var(--dark-color);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            header .container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 1rem;
+                justify-content: center;
+            }
+            
+            .lockers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .remote-form {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                margin: 20% auto;
+                width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Login Screen -->
-    <div id="loginScreen" class="screen active">
-        <div class="container">
-            <div class="logo-container">
-                <h1>Smart Locker System</h1>
-                <div class="logo">
-                    <img src="locker-icon.png" alt="Smart Locker Logo">
-                </div>
-            </div>
-            <div class="form-container">
-                <h2>Login</h2>
-                <div class="input-group">
+    <div id="login-screen" class="auth-section">
+        <div class="auth-container">
+            <h2>Smart Locker System</h2>
+            <div id="login-alert" class="alert hidden"></div>
+            <form id="login-form">
+                <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter your email">
+                    <input type="email" id="email" required>
                 </div>
-                <div class="input-group">
+                <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password">
+                    <input type="password" id="password" required>
                 </div>
-                <button id="loginBtn" class="primary-btn">Login</button>
-                <div id="loginError" class="error-message"></div>
-            </div>
+                <div class="form-footer">
+                    <button type="submit" class="btn">Login</button>
+                </div>
+            </form>
         </div>
     </div>
-
+    
     <!-- Admin Dashboard -->
-    <div id="adminDashboard" class="screen">
+    <div id="admin-dashboard" class="hidden">
         <header>
-            <h1>Admin Dashboard</h1>
-            <div class="user-controls">
-                <span id="adminName">Admin</span>
-                <button id="adminLogoutBtn" class="logout-btn">Logout</button>
-            </div>
-        </header>
-        
-        <div class="dashboard-container">
-            <div class="sidebar">
+            <div class="container">
+                <div class="logo">
+                    <span>Smart Locker Admin Panel</span>
+                </div>
                 <nav>
                     <ul>
-                        <li class="active" data-tab="lockerStatus">Locker Status</li>
-                        <li data-tab="lockerHistory">History</li>
-                        <li data-tab="userManagement">User Management</li>
-                        <li data-tab="settings">Settings</li>
+                        <li><a href="#" id="admin-settings-btn">Settings</a></li>
+                        <li><a href="#" id="admin-logout-btn" class="btn btn-danger">Logout</a></li>
                     </ul>
                 </nav>
             </div>
-            
-            <div class="content">
-                <!-- Locker Status Tab -->
-                <div id="lockerStatus" class="tab-content active">
-                    <h2>Locker Status Overview</h2>
-                    
-                    <div class="locker-grid">
-                        <div class="locker-card" id="locker1Card">
-                            <h3>Locker 1</h3>
-                            <div class="locker-info">
-                                <p>Status: <span id="locker1Status" class="status">Unknown</span></p>
-                                <p>Temperature: <span id="locker1Temp">--</span>°C</p>
-                                <p>Humidity: <span id="locker1Humidity">--</span>%</p>
-                                <p>Gas Level: <span id="locker1Gas">--</span></p>
-                                <p>Last Access: <span id="locker1LastAccess">--</span></p>
-                            </div>
-                            <div class="locker-controls">
-                                <input type="text" id="locker1Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
-                                <button class="remote-access-btn" data-locker="1">Remote Access</button>
-                            </div>
-                        </div>
-                        
-                        <div class="locker-card" id="locker2Card">
-                            <h3>Locker 2</h3>
-                            <div class="locker-info">
-                                <p>Status: <span id="locker2Status" class="status">Unknown</span></p>
-                                <p>Temperature: <span id="locker2Temp">--</span>°C</p>
-                                <p>Humidity: <span id="locker2Humidity">--</span>%</p>
-                                <p>Gas Level: <span id="locker2Gas">--</span></p>
-                                <p>Last Access: <span id="locker2LastAccess">--</span></p>
-                            </div>
-                            <div class="locker-controls">
-                                <input type="text" id="locker2Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
-                                <button class="remote-access-btn" data-locker="2">Remote Access</button>
-                            </div>
-                        </div>
-                        
-                        <div class="locker-card" id="locker3Card">
-                            <h3>Locker 3</h3>
-                            <div class="locker-info">
-                                <p>Status: <span id="locker3Status" class="status">Unknown</span></p>
-                                <p>Temperature: <span id="locker3Temp">--</span>°C</p>
-                                <p>Humidity: <span id="locker3Humidity">--</span>%</p>
-                                <p>Gas Level: <span id="locker3Gas">--</span></p>
-                                <p>Last Access: <span id="locker3LastAccess">--</span></p>
-                            </div>
-                            <div class="locker-controls">
-                                <input type="text" id="locker3Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
-                                <button class="remote-access-btn" data-locker="3">Remote Access</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Locker History Tab -->
-                <div id="lockerHistory" class="tab-content">
-                    <h2>Access History</h2>
-                    <div class="filter-controls">
-                        <select id="lockerFilter">
-                            <option value="all">All Lockers</option>
-                            <option value="1">Locker 1</option>
-                            <option value="2">Locker 2</option>
-                            <option value="3">Locker 3</option>
-                        </select>
-                        <input type="date" id="dateFilter">
-                        <button id="filterBtn">Filter</button>
-                    </div>
-                    
-                    <div class="history-table-container">
-                        <table id="historyTable">
-                            <thead>
-                                <tr>
-                                    <th>Locker</th>
-                                    <th>Action</th>
-                                    <th>Time</th>
-                                    <th>User</th>
-                                    <th>Access Method</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody">
-                                <!-- History data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- User Management Tab -->
-                <div id="userManagement" class="tab-content">
-                    <h2>User Management</h2>
-                    <div class="user-list">
-                        <table id="userTable">
-                            <thead>
-                                <tr>
-                                    <th>Email</th>
-                                    <th>Name</th>
-                                    <th>Assigned Locker</th>
-                                    <th>Last Access</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userTableBody">
-                                <!-- User data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- Settings Tab -->
-                <div id="settings" class="tab-content">
-                    <h2>Admin Settings</h2>
-                    <div class="settings-form">
-                        <div class="input-group">
-                            <label for="adminCurrentPassword">Current Password</label>
-                            <input type="password" id="adminCurrentPassword">
-                        </div>
-                        <div class="input-group">
-                            <label for="adminNewPassword">New Password</label>
-                            <input type="password" id="adminNewPassword">
-                        </div>
-                        <div class="input-group">
-                            <label for="adminConfirmPassword">Confirm Password</label>
-                            <input type="password" id="adminConfirmPassword">
-                        </div>
-                        <button id="changeAdminPasswordBtn" class="primary-btn">Update Password</button>
-                        <div id="passwordChangeMessage" class="message"></div>
-                    </div>
-                    
-                    <h2>System Settings</h2>
-                    <div class="settings-form">
-                        <div class="input-group">
-                            <label for="tempThreshold">Temperature Threshold (°C)</label>
-                            <input type="number" id="tempThreshold" min="20" max="50" value="37">
-                        </div>
-                        <div class="input-group">
-                            <label for="gasThreshold">Gas Alert Threshold</label>
-                            <input type="number" id="gasThreshold" min="500" max="3000" value="1800">
-                        </div>
-                        <button id="updateThresholdsBtn" class="primary-btn">Update Thresholds</button>
-                    </div>
+        </header>
+        
+        <main class="container dashboard">
+            <div class="dashboard-header">
+                <h2>Locker Management</h2>
+                <div>
+                    <span id="connection-status" class="status-indicator">Connected</span>
                 </div>
             </div>
-        </div>
+            
+            <div id="admin-alert" class="alert hidden"></div>
+            
+            <div class="lockers-grid" id="admin-lockers">
+                <!-- Locker cards will be dynamically generated here -->
+            </div>
+            
+            <div class="history-section">
+                <h3>Access History</h3>
+                <div class="history-list" id="admin-history">
+                    <!-- History items will be dynamically generated here -->
+                </div>
+            </div>
+            
+            <div class="remote-control">
+                <h3>Remote Control</h3>
+                <form id="admin-remote-form" class="remote-form">
+                    <select id="admin-locker-select" required>
+                        <option value="">Select Locker</option>
+                        <option value="1">Locker 1</option>
+                        <option value="2">Locker 2</option>
+                        <option value="3">Locker 3</option>
+                    </select>
+                    <input type="text" id="admin-pin" placeholder="Enter 6-digit PIN" maxlength="6" pattern="[0-9]{6}" required>
+                    <button type="submit" class="btn">Send Command</button>
+                </form>
+            </div>
+        </main>
     </div>
-
+    
     <!-- User Dashboard -->
-    <div id="userDashboard" class="screen">
+    <div id="user-dashboard" class="hidden">
         <header>
-            <h1>My Locker</h1>
-            <div class="user-controls">
-                <span id="userName">User</span>
-                <button id="userLogoutBtn" class="logout-btn">Logout</button>
-            </div>
-        </header>
-        
-        <div class="dashboard-container">
-            <div class="sidebar">
+            <div class="container">
+                <div class="logo">
+                    <span>Smart Locker User Panel</span>
+                </div>
                 <nav>
                     <ul>
-                        <li class="active" data-tab="myLocker">My Locker</li>
-                        <li data-tab="myHistory">Access History</li>
-                        <li data-tab="userSettings">Settings</li>
+                        <li><a href="#" id="user-settings-btn">Settings</a></li>
+                        <li><a href="#" id="user-logout-btn" class="btn btn-danger">Logout</a></li>
                     </ul>
                 </nav>
             </div>
-            
-            <div class="content">
-                <!-- My Locker Tab -->
-                <div id="myLocker" class="tab-content active">
-                    <div class="user-locker-container">
-                        <div class="locker-card large" id="userLockerCard">
-                            <h2>Locker <span id="userLockerNumber">--</span></h2>
-                            <div class="locker-status-large">
-                                <div class="status-indicator" id="userLockerStatusIndicator"></div>
-                                <span id="userLockerStatus">Unknown</span>
-                            </div>
-                            <div class="locker-info">
-                                <div class="info-row">
-                                    <div class="info-item">
-                                        <h3>Temperature</h3>
-                                        <p><span id="userLockerTemp">--</span>°C</p>
-                                    </div>
-                                    <div class="info-item">
-                                        <h3>Humidity</h3>
-                                        <p><span id="userLockerHumidity">--</span>%</p>
-                                    </div>
-                                </div>
-                                <div class="info-row">
-                                    <div class="info-item">
-                                        <h3>Gas Level</h3>
-                                        <p><span id="userLockerGas">--</span></p>
-                                    </div>
-                                    <div class="info-item">
-                                        <h3>Last Access</h3>
-                                        <p><span id="userLockerLastAccess">--</span></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="locker-controls">
-                                <input type="text" id="userLockerCode" placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}">
-                                <button id="userRemoteAccessBtn" class="primary-btn">Remote Access</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- My History Tab -->
-                <div id="myHistory" class="tab-content">
-                    <h2>My Access History</h2>
-                    <div class="filter-controls">
-                        <input type="date" id="userDateFilter">
-                        <button id="userFilterBtn">Filter</button>
-                    </div>
-                    
-                    <div class="history-table-container">
-                        <table id="userHistoryTable">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Action</th>
-                                    <th>Access Method</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userHistoryTableBody">
-                                <!-- User history data will be inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <!-- User Settings Tab -->
-                <div id="userSettings" class="tab-content">
-                    <h2>Account Settings</h2>
-                    <div class="settings-form">
-                        <div class="input-group">
-                            <label for="currentPassword">Current Password</label>
-                            <input type="password" id="currentPassword">
-                        </div>
-                        <div class="input-group">
-                            <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword">
-                        </div>
-                        <div class="input-group">
-                            <label for="confirmPassword">Confirm Password</label>
-                            <input type="password" id="confirmPassword">
-                        </div>
-                        <button id="changePasswordBtn" class="primary-btn">Update Password</button>
-                        <div id="userPasswordChangeMessage" class="message"></div>
-                    </div>
-                    
-                    <h2>Notification Settings</h2>
-                    <div class="settings-form">
-                        <div class="input-group">
-                            <label for="phoneNumber">Phone Number (for SMS alerts)</label>
-                            <input type="tel" id="phoneNumber" placeholder="+639XXXXXXXXX">
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="tempAlerts" checked>
-                            <label for="tempAlerts">Temperature Alerts</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="gasAlerts" checked>
-                            <label for="gasAlerts">Gas Detection Alerts</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="accessAlerts" checked>
-                            <label for="accessAlerts">Unauthorized Access Alerts</label>
-                        </div>
-                        <button id="saveNotificationSettingsBtn" class="primary-btn">Save Settings</button>
-                    </div>
+        </header>
+        
+        <main class="container dashboard">
+            <div class="dashboard-header">
+                <h2>My Locker</h2>
+                <div>
+                    <span id="user-connection-status" class="status-indicator">Connected</span>
                 </div>
             </div>
+            
+            <div id="user-alert" class="alert hidden"></div>
+            
+            <div class="lockers-grid" id="user-locker">
+                <!-- User's locker card will be dynamically generated here -->
+            </div>
+            
+            <div class="history-section">
+                <h3>Access History</h3>
+                <div class="history-list" id="user-history">
+                    <!-- History items will be dynamically generated here -->
+                </div>
+            </div>
+            
+            <div class="remote-control">
+                <h3>Remote Control</h3>
+                <form id="user-remote-form" class="remote-form">
+                    <input type="text" id="user-pin" placeholder="Enter 6-digit PIN" maxlength="6" pattern="[0-9]{6}" required>
+                    <button type="submit" class="btn">Send Command</button>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Change Password</h2>
+            <div id="settings-alert" class="alert hidden"></div>
+            <form id="change-password-form">
+                <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <div class="form-footer">
+                    <button type="submit" class="btn">Update Password</button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <div id="offlineIndicator" class="hidden">
-        <span>Offline Mode - Limited functionality available</span>
-    </div>
-
-    <script src="app.js"></script>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Smart Locker System</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAYNaN-zT3d0QggsZaphN8vYMdZFGXE98",
+            authDomain: "iotlockers-36e7c.firebaseapp.com",
+            databaseURL: "https://iotlockers-36e7c-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "iotlockers-36e7c",
+            storageBucket: "iotlockers-36e7c.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:123456789"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const adminDashboard = document.getElementById('admin-dashboard');
+        const userDashboard = document.getElementById('user-dashboard');
+        const loginForm = document.getElementById('login-form');
+        const loginAlert = document.getElementById('login-alert');
+        const adminLogoutBtn = document.getElementById('admin-logout-btn');
+        const userLogoutBtn = document.getElementById('user-logout-btn');
+        const adminLockers = document.getElementById('admin-lockers');
+        const userLocker = document.getElementById('user-locker');
+        const adminHistory = document.getElementById('admin-history');
+        const userHistory = document.getElementById('user-history');
+        const adminRemoteForm = document.getElementById('admin-remote-form');
+        const userRemoteForm = document.getElementById('user-remote-form');
+        const settingsModal = document.getElementById('settings-modal');
+        const adminSettingsBtn = document.getElementById('admin-settings-btn');
+        const userSettingsBtn = document.getElementById('user-settings-btn');
+        const closeModal = document.querySelector('.close-modal');
+        const changePasswordForm = document.getElementById('change-password-form');
+        const settingsAlert = document.getElementById('settings-alert');
+        const adminAlert = document.getElementById('admin-alert');
+        const userAlert = document.getElementById('user-alert');
+        
+        // Global Variables
+        let currentUser = null;
+        let userLockerNumber = null;
+        let isAdmin = false;
+        
+        // Event Listeners
+        loginForm.addEventListener('submit', handleLogin);
+        adminLogoutBtn.addEventListener('submit', handleLogout);
+        userLogoutBtn.addEventListener('click', handleLogout);
+        adminRemoteForm.addEventListener('submit', handleAdminRemoteControl);
+        userRemoteForm.addEventListener('submit', handleUserRemoteControl);
+        adminSettingsBtn.addEventListener('click', openSettingsModal);
+        userSettingsBtn.addEventListener('click', openSettingsModal);
+        closeModal.addEventListener('click', closeSettingsModal);
+        changePasswordForm.addEventListener('submit', handlePasswordChange);
+        
+        // Check Authentication State
+        auth.onAuthStateChanged(handleAuthStateChange);
+        
+        // Functions
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            showAlert(loginAlert, 'Logging in...', 'alert-warning');
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Login successful
+                    currentUser = userCredential.user;
+                    loginForm.reset();
+                    hideAlert(loginAlert);
+                })
+                .catch((error) => {
+                    showAlert(loginAlert, `Login failed: ${error.message}`, 'alert-danger');
+                });
+        }
+        
+        function handleLogout() {
+            auth.signOut()
+                .then(() => {
+                    currentUser = null;
+                    isAdmin = false;
+                    userLockerNumber = null;
+                    showLoginScreen();
+                })
+                .catch((error) => {
+                    console.error('Logout Error:', error);
+                });
+        }
+        
+        function handleAuthStateChange(user) {
+            if (user) {
+                currentUser = user;
+                
+                // Check if user is admin
+                if (user.email === 'admin@gmail.com') {
+                    isAdmin = true;
+                    showAdminDashboard();
+                    loadAdminData();
+                } else {
+                    isAdmin = false;
+                    
+                    // Determine which locker belongs to this user
+                    if (user.email === 'user1@gmail.com') {
+                        userLockerNumber = 1;
+                    } else if (user.email === 'user2@gmail.com') {
+                        userLockerNumber = 2;
+                    } else if (user.email === 'user3@gmail.com') {
+                        userLockerNumber = 3;
+                    }
+                    
+                    showUserDashboard();
+                    loadUserData();
+                }
+            } else {
+                showLoginScreen();
+            }
+        }
+        
+        function showLoginScreen() {
+            loginScreen.classList.remove('hidden');
+            adminDashboard.classList.add('hidden');
+            userDashboard.classList.add('hidden');
+        }
+        
+        function showAdminDashboard() {
+            loginScreen.classList.add('hidden');
+            adminDashboard.classList.remove('hidden');
+            userDashboard.classList.add('hidden');
+        }
+        
+        function showUserDashboard() {
+            loginScreen.classList.add('hidden');
+            adminDashboard.classList.add('hidden');
+            userDashboard.classList.remove('hidden');
+        }
+        
+        function loadAdminData() {
+            // Listen for locker status changes
+            database.ref('lockers').on('value', (snapshot) => {
+                const lockers = snapshot.val() || {};
+                renderAdminLockers(lockers);
+            });
+            
+            // Listen for history updates
+            database.ref('history').orderByChild('timestamp').limitToLast(20).on('value', (snapshot) => {
+                const history = snapshot.val() || {};
+                renderAdminHistory(history);
+            });
+        }
+        
+        function loadUserData() {
+            if (!userLockerNumber) return;
+            
+            // Listen for the user's locker status changes
+            database.ref(`lockers/locker${userLockerNumber}`).on('value', (snapshot) => {
+                const lockerData = snapshot.val() || {};
+                renderUserLocker(lockerData);
+            });
+            
+            // Listen for the user's locker history
+            database.ref('history').orderByChild('lockerNum').equalTo(userLockerNumber).limitToLast(10).on('value', (snapshot) => {
+                const history = snapshot.val() || {};
+                renderUserHistory(history);
+            });
+        }
+        
+        function renderAdminLockers(lockers) {
+            adminLockers.innerHTML = '';
+            
+            for (let i = 1; i <= 3; i++) {
+                const locker = lockers[`locker${i}`] || {};
+                const isOpen = locker.isOpen || false;
+                const temperature = locker.temperature || 'N/A';
+                const humidity = locker.humidity || 'N/A';
+                const gasLevel = locker.gasLevel || 'N/A';
+                const isMaintenance = locker.isMaintenance || false;
+                
+                let statusClass = isOpen ? 'status-open' : 'status-closed';
+                let statusText = isOpen ? 'Open' : 'Closed';
+                
+                if (isMaintenance) {
+                    statusClass = 'status-maintenance';
+                    statusText = 'Maintenance';
+                }
+                
+                const lockerCard = document.createElement('div');
+                lockerCard.className = 'locker-card';
+                
+                lockerCard.innerHTML = `
+                    <h3>Locker ${i} <span class="status ${statusClass}">${statusText}</span></h3>
+                    <div class="locker-details">
+                        <p><strong>Temperature:</strong> <span>${temperature}°C</span></p>
+                        <p><strong>Humidity:</strong> <span>${humidity}%</span></p>
+                        <p><strong>Gas Level:</strong> <span>${gasLevel}</span></p>
+                        <p><strong>Last Updated:</strong> <span>${new Date().toLocaleTimeString()}</span></p>
+                    </div>
+                    <div class="locker-actions">
+                        <button class="btn btn-success toggle-locker" data-locker="${i}">
+                            ${isOpen ? 'Close Locker' : 'Open Locker'}
+                        </button>
+                        <button class="btn ${isMaintenance ? 'btn-success' : 'btn-danger'} toggle-maintenance" data-locker="${i}">
+                            ${isMaintenance ? 'Clear Maintenance' : 'Set Maintenance'}
+                        </button>
+                    </div>
+                `;
+                
+                adminLockers.appendChild(lockerCard);
+            }
+            
+            // Add event listeners to the buttons
+            document.querySelectorAll('.toggle-locker').forEach(button => {
+                button.addEventListener('click', handleLockerToggle);
+            });
+            
+            document.querySelectorAll('.toggle-maintenance').forEach(button => {
+                button.addEventListener('click', handleMaintenanceToggle);
+            });
+        }
+        
+        function renderUserLocker(lockerData) {
+            userLocker.innerHTML = '';
+            
+            const isOpen = lockerData.isOpen || false;
+            const temperature = lockerData.temperature || 'N/A';
+            const humidity = lockerData.humidity || 'N/A';
+            const gasLevel = lockerData.gasLevel || 'N/A';
+            const isMaintenance = lockerData.isMaintenance || false;
+            
+            let statusClass = isOpen ? 'status-open' : 'status-closed';
+            let statusText = isOpen ? 'Open' : 'Closed';
+            
+            if (isMaintenance) {
+                statusClass = 'status-maintenance';
+                statusText = 'Maintenance';
+            }
+            
+            const lockerCard = document.createElement('div');
+            lockerCard.className = 'locker-card';
+            
+            lockerCard.innerHTML = `
+                <h3>Locker ${userLockerNumber} <span class="status ${statusClass}">${statusText}</span></h3>
+                <div class="locker-details">
+                    <p><strong>Temperature:</strong> <span>${temperature}°C</span></p>
+                    <p><strong>Humidity:</strong> <span>${humidity}%</span></p>
+                    <p><strong>Gas Level:</strong> <span>${gasLevel}</span></p>
+                    <p><strong>Last Updated:</strong> <span>${new Date().toLocaleTimeString()}</span></p>
+                </div>
+                <div class="locker-actions">
+                    <button class="btn btn-success toggle-user-locker">
+                        ${isOpen ? 'Close Locker' : 'Open Locker'}
+                    </button>
+                </div>
+            `;
+            
+            userLocker.appendChild(lockerCard);
+            
+            // Add event listener to the toggle button
+            document.querySelector('.toggle-user-locker').addEventListener('click', handleUserLockerToggle);
+        }
+        
+        function renderAdminHistory(history) {
+            adminHistory.innerHTML = '';
+            
+            // Convert the object to an array and sort by timestamp
+            const historyArray = Object.values(history).sort((a, b) => b.timestamp - a.timestamp);
+            
+            historyArray.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const date = new Date(item.timestamp);
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <strong>Locker ${item.lockerNum}:</strong> ${item.action}
+                    </div>
+                    <div>${date.toLocaleString()}</div>
+                `;
+                
+                adminHistory.appendChild(historyItem);
+            });
+        }
+        
+        function renderUserHistory(history) {
+            userHistory.innerHTML = '';
+            
+            // Convert the object to an array and sort by timestamp
+            const historyArray = Object.values(history).sort((a, b) => b.timestamp - a.timestamp);
+            
+            historyArray.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const date = new Date(item.timestamp);
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <strong>Locker ${item.lockerNum}:</strong> ${item.action}
+                    </div>
+                    <div>${date.toLocaleString()}</div>
+                `;
+                
+                userHistory.appendChild(historyItem);
+            });
+        }
+        
+        function handleLockerToggle(e) {
+            const lockerNumber = e.target.dataset.locker;
+            const lockerRef = database.ref(`lockers/locker${lockerNumber}`);
+            
+            lockerRef.once('value').then((snapshot) => {
+                const currentState = snapshot.val() || {};
+                const newState = !currentState.isOpen;
+                
+                lockerRef.update({
+                    isOpen: newState
+                });
+                
+                // Add to history
+                const historyRef = database.ref('history').push();
+                historyRef.set({
+                    lockerNum: parseInt(lockerNumber),
+                    action: newState ? 'Opened by admin' : 'Closed by admin',lockerNum: parseInt(lockerNumber),
+                    action: newState ? 'Opened by admin' : 'Closed by admin',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    user: 'admin'
+                });
+                
+                // Send command to ESP32
+                database.ref('commands').push({
+                    lockerNum: parseInt(lockerNumber),
+                    command: newState ? 'open' : 'close',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    pin: '000000' // Admin override doesn't need a PIN
+                });
+                
+                showAlert(adminAlert, `Locker ${lockerNumber} ${newState ? 'opened' : 'closed'} successfully`, 'alert-success');
+            });
+        }
+        
+        function handleMaintenanceToggle(e) {
+            const lockerNumber = e.target.dataset.locker;
+            const lockerRef = database.ref(`lockers/locker${lockerNumber}`);
+            
+            lockerRef.once('value').then((snapshot) => {
+                const currentState = snapshot.val() || {};
+                const newMaintenanceState = !currentState.isMaintenance;
+                
+                lockerRef.update({
+                    isMaintenance: newMaintenanceState
+                });
+                
+                // Add to history
+                const historyRef = database.ref('history').push();
+                historyRef.set({
+                    lockerNum: parseInt(lockerNumber),
+                    action: newMaintenanceState ? 'Set to maintenance mode' : 'Cleared from maintenance mode',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    user: 'admin'
+                });
+                
+                showAlert(adminAlert, `Locker ${lockerNumber} ${newMaintenanceState ? 'set to' : 'cleared from'} maintenance mode`, 'alert-success');
+            });
+        }
+        
+        function handleUserLockerToggle() {
+            const lockerRef = database.ref(`lockers/locker${userLockerNumber}`);
+            
+            lockerRef.once('value').then((snapshot) => {
+                const currentState = snapshot.val() || {};
+                const newState = !currentState.isOpen;
+                
+                // Add to history
+                const historyRef = database.ref('history').push();
+                historyRef.set({
+                    lockerNum: userLockerNumber,
+                    action: newState ? 'Opened by user' : 'Closed by user',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    user: currentUser.email
+                });
+                
+                // Send command to ESP32
+                database.ref('commands').push({
+                    lockerNum: userLockerNumber,
+                    command: newState ? 'open' : 'close',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    pin: '000000' // User app override doesn't need a PIN
+                });
+                
+                showAlert(userAlert, `Locker ${userLockerNumber} ${newState ? 'opening' : 'closing'}...`, 'alert-success');
+            });
+        }
+        
+        function handleAdminRemoteControl(e) {
+            e.preventDefault();
+            
+            const lockerNumber = document.getElementById('admin-locker-select').value;
+            const pin = document.getElementById('admin-pin').value;
+            
+            if (!lockerNumber || !pin) {
+                showAlert(adminAlert, 'Please select a locker and enter a 6-digit PIN', 'alert-danger');
+                return;
+            }
+            
+            // Validate PIN format
+            if (!/^\d{6}$/.test(pin)) {
+                showAlert(adminAlert, 'PIN must be exactly 6 digits', 'alert-danger');
+                return;
+            }
+            
+            const lockerRef = database.ref(`lockers/locker${lockerNumber}`);
+            
+            lockerRef.once('value').then((snapshot) => {
+                const currentState = snapshot.val() || {};
+                const newState = !currentState.isOpen;
+                
+                // Send command to ESP32
+                database.ref('commands').push({
+                    lockerNum: parseInt(lockerNumber),
+                    command: newState ? 'open' : 'close',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    pin: pin
+                });
+                
+                // Add to history
+                const historyRef = database.ref('history').push();
+                historyRef.set({
+                    lockerNum: parseInt(lockerNumber),
+                    action: `Remote ${newState ? 'open' : 'close'} command sent by admin`,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    user: 'admin'
+                });
+                
+                adminRemoteForm.reset();
+                showAlert(adminAlert, `Remote command sent to Locker ${lockerNumber}`, 'alert-success');
+            });
+        }
+        
+        function handleUserRemoteControl(e) {
+            e.preventDefault();
+            
+            const pin = document.getElementById('user-pin').value;
+            
+            if (!pin) {
+                showAlert(userAlert, 'Please enter a 6-digit PIN', 'alert-danger');
+                return;
+            }
+            
+            // Validate PIN format
+            if (!/^\d{6}$/.test(pin)) {
+                showAlert(userAlert, 'PIN must be exactly 6 digits', 'alert-danger');
+                return;
+            }
+            
+            const lockerRef = database.ref(`lockers/locker${userLockerNumber}`);
+            
+            lockerRef.once('value').then((snapshot) => {
+                const currentState = snapshot.val() || {};
+                const newState = !currentState.isOpen;
+                
+                // Send command to ESP32
+                database.ref('commands').push({
+                    lockerNum: userLockerNumber,
+                    command: newState ? 'open' : 'close',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    pin: pin
+                });
+                
+                // Add to history
+                const historyRef = database.ref('history').push();
+                historyRef.set({
+                    lockerNum: userLockerNumber,
+                    action: `Remote ${newState ? 'open' : 'close'} command sent by user`,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    user: currentUser.email
+                });
+                
+                userRemoteForm.reset();
+                showAlert(userAlert, `Remote command sent to your locker`, 'alert-success');
+            });
+        }
+        
+        function openSettingsModal() {
+            settingsModal.style.display = 'block';
+        }
+        
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
+            changePasswordForm.reset();
+            hideAlert(settingsAlert);
+        }
+        
+        function handlePasswordChange(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                showAlert(settingsAlert, 'New passwords do not match', 'alert-danger');
+                return;
+            }
+            
+            // Reauthenticate user
+            const credential = firebase.auth.EmailAuthProvider.credential(
+                currentUser.email, 
+                currentPassword
+            );
+            
+            currentUser.reauthenticateWithCredential(credential)
+                .then(() => {
+                    // Update password
+                    return currentUser.updatePassword(newPassword);
+                })
+                .then(() => {
+                    showAlert(settingsAlert, 'Password updated successfully', 'alert-success');
+                    setTimeout(() => {
+                        closeSettingsModal();
+                    }, 2000);
+                })
+                .catch((error) => {
+                    showAlert(settingsAlert, `Error: ${error.message}`, 'alert-danger');
+                });
+        }
+        
+        function showAlert(element, message, className) {
+            element.textContent = message;
+            element.className = `alert ${className}`;
+            element.classList.remove('hidden');
+        }
+        
+        function hideAlert(element) {
+            element.classList.add('hidden');
+        }
+        
+        // Connection Status Monitoring
+        let offlineWarningDisplayed = false;
+        
+        window.addEventListener('online', () => {
+            document.getElementById('connection-status').textContent = 'Connected';
+            document.getElementById('connection-status').style.color = 'green';
+            document.getElementById('user-connection-status').textContent = 'Connected';
+            document.getElementById('user-connection-status').style.color = 'green';
+            
+            if (offlineWarningDisplayed) {
+                if (isAdmin) {
+                    showAlert(adminAlert, 'Connection restored. Data will sync automatically.', 'alert-success');
+                } else {
+                    showAlert(userAlert, 'Connection restored. Data will sync automatically.', 'alert-success');
+                }
+                offlineWarningDisplayed = false;
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('connection-status').textContent = 'Offline';
+            document.getElementById('connection-status').style.color = 'red';
+            document.getElementById('user-connection-status').textContent = 'Offline';
+            document.getElementById('user-connection-status').style.color = 'red';
+            
+            if (!offlineWarningDisplayed) {
+                if (isAdmin) {
+                    showAlert(adminAlert, 'You are offline. Limited functionality available.', 'alert-warning');
+                } else {
+                    showAlert(userAlert, 'You are offline. Limited functionality available.', 'alert-warning');
+                }
+                offlineWarningDisplayed = true;
+            }
+        });
+        
+        // Check for gas and temperature alerts
+        database.ref('alerts').on('value', (snapshot) => {
+            const alerts = snapshot.val() || {};
+            
+            for (const key in alerts) {
+                const alert = alerts[key];
+                
+                if (!alert.acknowledged) {
+                    const lockerNum = alert.lockerNum;
+                    const alertType = alert.type;
+                    const timestamp = new Date(alert.timestamp).toLocaleString();
+                    
+                    let alertMessage = `ALERT: ${alertType} detected in Locker ${lockerNum} at ${timestamp}`;
+                    
+                    if (isAdmin) {
+                        showAlert(adminAlert, alertMessage, 'alert-danger');
+                    } else if (userLockerNumber === lockerNum) {
+                        showAlert(userAlert, alertMessage, 'alert-danger');
+                    }
+                    
+                    // Mark alert as acknowledged
+                    database.ref(`alerts/${key}`).update({
+                        acknowledged: true
+                    });
+                }
+            }
+        });
+    </script>
 </body>
 </html>
