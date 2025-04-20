@@ -1,159 +1,343 @@
-<!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Locker System - Login</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --sky-blue: #87CEEB;
-            --orange: #FFA500;
-            --yellow: #FFD700;
-        }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background: var(--sky-blue);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 400px;
-        }
-
-        h1 {
-            color: var(--orange);
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.8rem;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        button {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 5px;
-            background: var(--orange);
-            color: white;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #ff8c00;
-        }
-
-        .role-select {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .role-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid var(--orange);
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .role-btn.active {
-            background: var(--orange);
-            color: white;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                width: 95%;
-                padding: 1rem;
-            }
-        }
-    </style>
+    <title>Smart Locker System</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 </head>
 <body>
-    <div class="login-container">
-        <h1>Smart Locker System</h1>
-        <div class="role-select">
-            <div class="role-btn active" onclick="setRole('admin')">Admin</div>
-            <div class="role-btn" onclick="setRole('user')">User</div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="container">
+            <div class="logo-container">
+                <h1>Smart Locker System</h1>
+                <div class="logo">
+                    <img src="locker-icon.png" alt="Smart Locker Logo">
+                </div>
+            </div>
+            <div class="form-container">
+                <h2>Login</h2>
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter your email">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                </div>
+                <button id="loginBtn" class="primary-btn">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </div>
         </div>
-        <form id="loginForm">
-            <div class="form-group">
-                <input type="email" id="email" placeholder="Email" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="password" placeholder="Password" required>
-            </div>
-            <button type="submit">Login</button>
-        </form>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBAYNaN-zT3d0QggsZaphN8vYMdZFGXE98",
-            authDomain: "iotlockers-36e7c.firebaseapp.com",
-            databaseURL: "https://iotlockers-36e7c-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "iotlockers-36e7c",
-            storageBucket: "iotlockers-36e7c.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="screen">
+        <header>
+            <h1>Admin Dashboard</h1>
+            <div class="user-controls">
+                <span id="adminName">Admin</span>
+                <button id="adminLogoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </header>
+        
+        <div class="dashboard-container">
+            <div class="sidebar">
+                <nav>
+                    <ul>
+                        <li class="active" data-tab="lockerStatus">Locker Status</li>
+                        <li data-tab="lockerHistory">History</li>
+                        <li data-tab="userManagement">User Management</li>
+                        <li data-tab="settings">Settings</li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="content">
+                <!-- Locker Status Tab -->
+                <div id="lockerStatus" class="tab-content active">
+                    <h2>Locker Status Overview</h2>
+                    
+                    <div class="locker-grid">
+                        <div class="locker-card" id="locker1Card">
+                            <h3>Locker 1</h3>
+                            <div class="locker-info">
+                                <p>Status: <span id="locker1Status" class="status">Unknown</span></p>
+                                <p>Temperature: <span id="locker1Temp">--</span>°C</p>
+                                <p>Humidity: <span id="locker1Humidity">--</span>%</p>
+                                <p>Gas Level: <span id="locker1Gas">--</span></p>
+                                <p>Last Access: <span id="locker1LastAccess">--</span></p>
+                            </div>
+                            <div class="locker-controls">
+                                <input type="text" id="locker1Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
+                                <button class="remote-access-btn" data-locker="1">Remote Access</button>
+                            </div>
+                        </div>
+                        
+                        <div class="locker-card" id="locker2Card">
+                            <h3>Locker 2</h3>
+                            <div class="locker-info">
+                                <p>Status: <span id="locker2Status" class="status">Unknown</span></p>
+                                <p>Temperature: <span id="locker2Temp">--</span>°C</p>
+                                <p>Humidity: <span id="locker2Humidity">--</span>%</p>
+                                <p>Gas Level: <span id="locker2Gas">--</span></p>
+                                <p>Last Access: <span id="locker2LastAccess">--</span></p>
+                            </div>
+                            <div class="locker-controls">
+                                <input type="text" id="locker2Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
+                                <button class="remote-access-btn" data-locker="2">Remote Access</button>
+                            </div>
+                        </div>
+                        
+                        <div class="locker-card" id="locker3Card">
+                            <h3>Locker 3</h3>
+                            <div class="locker-info">
+                                <p>Status: <span id="locker3Status" class="status">Unknown</span></p>
+                                <p>Temperature: <span id="locker3Temp">--</span>°C</p>
+                                <p>Humidity: <span id="locker3Humidity">--</span>%</p>
+                                <p>Gas Level: <span id="locker3Gas">--</span></p>
+                                <p>Last Access: <span id="locker3LastAccess">--</span></p>
+                            </div>
+                            <div class="locker-controls">
+                                <input type="text" id="locker3Code" placeholder="6-digit code" maxlength="6" pattern="\d{6}">
+                                <button class="remote-access-btn" data-locker="3">Remote Access</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Locker History Tab -->
+                <div id="lockerHistory" class="tab-content">
+                    <h2>Access History</h2>
+                    <div class="filter-controls">
+                        <select id="lockerFilter">
+                            <option value="all">All Lockers</option>
+                            <option value="1">Locker 1</option>
+                            <option value="2">Locker 2</option>
+                            <option value="3">Locker 3</option>
+                        </select>
+                        <input type="date" id="dateFilter">
+                        <button id="filterBtn">Filter</button>
+                    </div>
+                    
+                    <div class="history-table-container">
+                        <table id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Locker</th>
+                                    <th>Action</th>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Access Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <!-- History data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- User Management Tab -->
+                <div id="userManagement" class="tab-content">
+                    <h2>User Management</h2>
+                    <div class="user-list">
+                        <table id="userTable">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>Assigned Locker</th>
+                                    <th>Last Access</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- User data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings" class="tab-content">
+                    <h2>Admin Settings</h2>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="adminCurrentPassword">Current Password</label>
+                            <input type="password" id="adminCurrentPassword">
+                        </div>
+                        <div class="input-group">
+                            <label for="adminNewPassword">New Password</label>
+                            <input type="password" id="adminNewPassword">
+                        </div>
+                        <div class="input-group">
+                            <label for="adminConfirmPassword">Confirm Password</label>
+                            <input type="password" id="adminConfirmPassword">
+                        </div>
+                        <button id="changeAdminPasswordBtn" class="primary-btn">Update Password</button>
+                        <div id="passwordChangeMessage" class="message"></div>
+                    </div>
+                    
+                    <h2>System Settings</h2>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="tempThreshold">Temperature Threshold (°C)</label>
+                            <input type="number" id="tempThreshold" min="20" max="50" value="37">
+                        </div>
+                        <div class="input-group">
+                            <label for="gasThreshold">Gas Alert Threshold</label>
+                            <input type="number" id="gasThreshold" min="500" max="3000" value="1800">
+                        </div>
+                        <button id="updateThresholdsBtn" class="primary-btn">Update Thresholds</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        firebase.initializeApp(firebaseConfig);
-        let isAdmin = true;
+    <!-- User Dashboard -->
+    <div id="userDashboard" class="screen">
+        <header>
+            <h1>My Locker</h1>
+            <div class="user-controls">
+                <span id="userName">User</span>
+                <button id="userLogoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </header>
+        
+        <div class="dashboard-container">
+            <div class="sidebar">
+                <nav>
+                    <ul>
+                        <li class="active" data-tab="myLocker">My Locker</li>
+                        <li data-tab="myHistory">Access History</li>
+                        <li data-tab="userSettings">Settings</li>
+                    </ul>
+                </nav>
+            </div>
+            
+            <div class="content">
+                <!-- My Locker Tab -->
+                <div id="myLocker" class="tab-content active">
+                    <div class="user-locker-container">
+                        <div class="locker-card large" id="userLockerCard">
+                            <h2>Locker <span id="userLockerNumber">--</span></h2>
+                            <div class="locker-status-large">
+                                <div class="status-indicator" id="userLockerStatusIndicator"></div>
+                                <span id="userLockerStatus">Unknown</span>
+                            </div>
+                            <div class="locker-info">
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <h3>Temperature</h3>
+                                        <p><span id="userLockerTemp">--</span>°C</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <h3>Humidity</h3>
+                                        <p><span id="userLockerHumidity">--</span>%</p>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <h3>Gas Level</h3>
+                                        <p><span id="userLockerGas">--</span></p>
+                                    </div>
+                                    <div class="info-item">
+                                        <h3>Last Access</h3>
+                                        <p><span id="userLockerLastAccess">--</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="locker-controls">
+                                <input type="text" id="userLockerCode" placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}">
+                                <button id="userRemoteAccessBtn" class="primary-btn">Remote Access</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My History Tab -->
+                <div id="myHistory" class="tab-content">
+                    <h2>My Access History</h2>
+                    <div class="filter-controls">
+                        <input type="date" id="userDateFilter">
+                        <button id="userFilterBtn">Filter</button>
+                    </div>
+                    
+                    <div class="history-table-container">
+                        <table id="userHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Action</th>
+                                    <th>Access Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userHistoryTableBody">
+                                <!-- User history data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- User Settings Tab -->
+                <div id="userSettings" class="tab-content">
+                    <h2>Account Settings</h2>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword">
+                        </div>
+                        <div class="input-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword">
+                        </div>
+                        <div class="input-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword">
+                        </div>
+                        <button id="changePasswordBtn" class="primary-btn">Update Password</button>
+                        <div id="userPasswordChangeMessage" class="message"></div>
+                    </div>
+                    
+                    <h2>Notification Settings</h2>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="phoneNumber">Phone Number (for SMS alerts)</label>
+                            <input type="tel" id="phoneNumber" placeholder="+639XXXXXXXXX">
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="tempAlerts" checked>
+                            <label for="tempAlerts">Temperature Alerts</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="gasAlerts" checked>
+                            <label for="gasAlerts">Gas Detection Alerts</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="accessAlerts" checked>
+                            <label for="accessAlerts">Unauthorized Access Alerts</label>
+                        </div>
+                        <button id="saveNotificationSettingsBtn" class="primary-btn">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        function setRole(role) {
-            isAdmin = role === 'admin';
-            document.querySelectorAll('.role-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.toLowerCase() === role);
-            });
-        }
+    <div id="offlineIndicator" class="hidden">
+        <span>Offline Mode - Limited functionality available</span>
+    </div>
 
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    if (isAdmin && email === 'admin@gmail.com') {
-                        window.location.href = 'admin-dashboard.html';
-                    } else if (!isAdmin) {
-                        window.location.href = 'user-dashboard.html';
-                    } else {
-                        alert('Invalid credentials for selected role');
-                    }
-                })
-                .catch((error) => {
-                    alert(error.message);
-                });
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
