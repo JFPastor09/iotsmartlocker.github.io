@@ -1,120 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Smart Lockers Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Lockers System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <style>
-        .locker-card { transition: all 0.3s; }
-        .locker-card:hover { transform: translateY(-5px); }
-        .open { background: #d4edda!important; }
-        .alert { background: #fff3cd!important; }
+        .locker-card {
+            transition: transform 0.2s;
+            min-height: 300px;
+        }
+        .locker-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .vacant { background-color: #28a745; }
+        .occupied { background-color: #dc3545; }
+        .maintenance { background-color: #ffc107; }
+        .sensor-warning { color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body class="bg-light">
     <div class="container py-5">
         <!-- Login Section -->
-        <div id="loginSection" class="card mx-auto" style="max-width: 400px;">
+        <div id="loginSection" class="card mx-auto shadow-lg" style="max-width: 400px;">
             <div class="card-body">
-                <h3 class="card-title mb-4">Smart Lockers Login</h3>
-                <input type="email" id="email" class="form-control mb-3" placeholder="Email">
-                <input type="password" id="password" class="form-control mb-3" placeholder="Password">
-                <button onclick="login()" class="btn btn-primary w-100">Login</button>
+                <h3 class="card-title text-center mb-4">Smart Lockers System</h3>
+                <div id="loginAlert" class="alert alert-danger d-none"></div>
+                <div class="mb-3">
+                    <input type="email" id="email" class="form-control" placeholder="Email address">
+                </div>
+                <div class="mb-3">
+                    <input type="password" id="password" class="form-control" placeholder="Password">
+                </div>
+                <button onclick="handleLogin()" class="btn btn-primary w-100">Login</button>
             </div>
         </div>
 
         <!-- Dashboard -->
-        <div id="dashboard" style="display: none;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Smart Lockers Management</h2>
-                <button onclick="logout()" class="btn btn-danger">Logout</button>
-            </div>
-            
+        <div id="dashboard" class="d-none">
+            <nav class="navbar navbar-light bg-white mb-4 shadow-sm">
+                <div class="container-fluid">
+                    <span class="navbar-brand">Smart Lockers Dashboard</span>
+                    <button onclick="handleLogout()" class="btn btn-danger">Logout</button>
+                </div>
+            </nav>
+
             <!-- Admin Panel -->
-            <div id="adminPanel" class="row"></div>
-            
+            <div id="adminPanel" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>All Lockers</h3>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        Add New User/Locker
+                    </button>
+                </div>
+                <div id="lockersContainer" class="row row-cols-1 row-cols-md-3 g-4"></div>
+            </div>
+
             <!-- User Panel -->
-            <div id="userPanel" class="row"></div>
+            <div id="userPanel" class="d-none">
+                <h3 class="mb-4">Your Locker</h3>
+                <div id="userLockerContainer" class="row"></div>
+            </div>
         </div>
     </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User/Locker</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm" onsubmit="return false">
+                        <div class="mb-3">
+                            <label class="form-label">Locker Number</label>
+                            <select id="lockerNumber" class="form-select" required>
+                                <option value="1">Locker 1</option>
+                                <option value="2">Locker 2</option>
+                                <option value="3">Locker 3</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="userName" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="userPhone" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="userEmail" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" id="userPassword" class="form-control" required>
+                        </div>
+                        <button onclick="addNewUser()" class="btn btn-primary w-100">Create User</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
 
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDOuSdQbMI1RDZ3KtK0Y6ipK2K33p6GJ04",
-            databaseURL: "https://smartlockersiot-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            authDomain: "smartlockersiot.firebaseapp.com"
+            authDomain: "smartlockersiot.firebaseapp.com",
+            databaseURL: "https://smartlockersiot-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smartlockersiot",
+            storageBucket: "smartlockersiot.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
+        
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        let currentUser = null;
         let isAdmin = false;
-        let userLocker = null;
 
-        // Authentication
+        // Authentication State Listener
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
+                currentUser = user;
                 checkAdminStatus(user.uid);
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
+                showDashboard();
             } else {
-                document.getElementById('loginSection').style.display = 'block';
-                document.getElementById('dashboard').style.display = 'none';
+                currentUser = null;
+                showLogin();
             }
         });
 
-        function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            firebase.auth().signInWithEmailAndPassword(email, password)
-                .catch(error => alert(error.message));
-        }
-
-        function logout() {
-            firebase.auth().signOut();
-        }
-
         async function checkAdminStatus(uid) {
-            const snapshot = await database.ref('admin_credentials/' + uid).once('value');
+            const snapshot = await database.ref(`admin_credentials/${uid}`).once('value');
             isAdmin = snapshot.exists();
-            loadDashboard();
+            updateUI();
         }
 
-        function loadDashboard() {
-            if(isAdmin) {
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('dashboard').classList.remove('d-none');
+        }
+
+        function showLogin() {
+            document.getElementById('loginSection').classList.remove('d-none');
+            document.getElementById('dashboard').classList.add('d-none');
+        }
+
+        function updateUI() {
+            document.getElementById('adminPanel').classList.toggle('d-none', !isAdmin);
+            document.getElementById('userPanel').classList.toggle('d-none', isAdmin);
+            
+            if (isAdmin) {
                 loadAllLockers();
             } else {
                 loadUserLocker();
             }
         }
 
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const alertDiv = document.getElementById('loginAlert');
+
+            try {
+                await firebase.auth().signInWithEmailAndPassword(email, password);
+                alertDiv.classList.add('d-none');
+            } catch (error) {
+                alertDiv.textContent = getLoginErrorMessage(error.code);
+                alertDiv.classList.remove('d-none');
+            }
+        }
+
+        function getLoginErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/user-not-found':
+                    return 'User does not exist.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password.';
+                case 'auth/invalid-email':
+                    return 'Invalid email format.';
+                default:
+                    return 'Login failed. Please try again.';
+            }
+        }
+
+        function handleLogout() {
+            firebase.auth().signOut();
+        }
+
         function loadAllLockers() {
             database.ref('lockers').on('value', snapshot => {
                 const lockers = snapshot.val();
-                let html = '';
-                for(const [num, data] of Object.entries(lockers)) {
-                    html += `
-                    <div class="col-md-4 mb-4">
-                        <div class="card locker-card ${data.locker_current_conditions.isOpen ? 'open' : ''}">
-                            <div class="card-body">
-                                <h5 class="card-title">Locker ${num}</h5>
-                                <p>Status: ${data.locker_status}</p>
-                                <p>Temperature: ${data.locker_current_conditions.temperature}°C</p>
-                                <p>Weight: ${data.locker_current_conditions.weight} kg</p>
-                                <button onclick="toggleLocker(${num})" class="btn ${data.locker_current_conditions.isOpen ? 'btn-danger' : 'btn-success'}">
-                                    ${data.locker_current_conditions.isOpen ? 'Close' : 'Open'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
+                const container = document.getElementById('lockersContainer');
+                container.innerHTML = '';
+                
+                for (const [number, data] of Object.entries(lockers)) {
+                    const card = createLockerCard(number, data);
+                    container.appendChild(card);
                 }
-                document.getElementById('adminPanel').innerHTML = html;
             });
         }
 
-        function toggleLocker(num) {
-            const ref = database.ref('lockers/' + num + '/locker_current_conditions/isOpen');
+        function createLockerCard(number, data) {
+            const card = document.createElement('div');
+            card.className = 'col';
+            card.innerHTML = `
+                <div class="card locker-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Locker ${number}</h5>
+                        <p class="card-text">
+                            Status: 
+                            <span class="status-indicator ${data.locker_status}"></span>
+                            ${data.locker_status}
+                        </p>
+                        <div class="mb-3">
+                            <h6>Current Conditions:</h6>
+                            <ul class="list-unstyled">
+                                <li>Temperature: ${data.locker_current_conditions.temperature}°C</li>
+                                <li>Humidity: ${data.locker_current_conditions.humidity}%</li>
+                                <li>Gas Level: <span class="${data.locker_current_conditions.gasLevel > 500 ? 'sensor-warning' : ''}">
+                                    ${data.locker_current_conditions.gasLevel}</span>
+                                </li>
+                                <li>Weight: ${data.locker_current_conditions.weight} kg</li>
+                            </ul>
+                        </div>
+                        <button onclick="toggleLocker(${number})" class="btn ${data.locker_current_conditions.isOpen ? 'btn-danger' : 'btn-success'}">
+                            ${data.locker_current_conditions.isOpen ? 'Close Locker' : 'Open Locker'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        async function loadUserLocker() {
+            const userEmail = currentUser.email;
+            const lockersSnapshot = await database.ref('lockers').once('value');
+            const lockers = lockersSnapshot.val();
+            
+            for (const [number, data] of Object.entries(lockers)) {
+                if (data.user_credentials.user_gmail === userEmail) {
+                    const container = document.getElementById('userLockerContainer');
+                    container.innerHTML = '';
+                    container.appendChild(createLockerCard(number, data));
+                    break;
+                }
+            }
+        }
+
+        function toggleLocker(lockerNumber) {
+            const ref = database.ref(`lockers/${lockerNumber}/locker_current_conditions/isOpen`);
             ref.transaction(current => !current);
+        }
+
+        async function addNewUser() {
+            const lockerNumber = document.getElementById('lockerNumber').value;
+            const userData = {
+                user_name: document.getElementById('userName').value,
+                user_number: document.getElementById('userPhone').value,
+                user_password: document.getElementById('userPassword').value,
+                user_gmail: document.getElementById('userEmail').value
+            };
+
+            try {
+                // Create Firebase user
+                await firebase.auth().createUserWithEmailAndPassword(
+                    userData.user_gmail, 
+                    document.getElementById('userPassword').value
+                );
+
+                // Update locker data
+                await database.ref(`lockers/${lockerNumber}/user_credentials`).set(userData);
+                await database.ref(`lockers/${lockerNumber}/locker_status`).set('occupied');
+
+                alert('User created successfully!');
+                $('#addUserModal').modal('hide');
+                document.getElementById('addUserForm').reset();
+            } catch (error) {
+                alert(`Error creating user: ${error.message}`);
+            }
         }
     </script>
 </body>
