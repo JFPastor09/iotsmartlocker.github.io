@@ -12,6 +12,7 @@ function toggleLocker(locker, isOpen) {
     timestamp: new Date().toISOString()
   };
 
+  console.log(`Attempting to toggle locker ${locker} to ${isOpen}, user UID: ${window.auth.currentUser ? window.auth.currentUser.uid : 'Not authenticated'}`);
   window.db.ref(`lockers/${locker}/history/events`).push(eventData)
     .then((snapshot) => {
       console.log(`History event recorded for ${locker} with key: ${snapshot.key}`);
@@ -26,6 +27,7 @@ function toggleLocker(locker, isOpen) {
     })
     .catch((error) => {
       console.error(`Failed to record history event for ${locker}:`, error);
+      console.log(`RTDB error details: ${error.code} - ${error.message}`);
       alert(`Failed to log event: ${error.message}`);
     });
 }
@@ -37,7 +39,6 @@ function deleteLockerData(locker) {
       humidity: 0,
       gasLevel: 0,
       weight: 0,
-      presence: false,
       isOpen: false
     }).catch(error => {
       console.error(`Reset failed for ${locker}:`, error);
@@ -182,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('password').value;
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
-        console.log('Login successful:', userCredential.user.email);
+        console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
         document.getElementById('login').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         loadDashboard(userCredential.user);
@@ -208,9 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadDashboard(user) {
     user.getIdTokenResult(true).then(idTokenResult => {
       const role = idTokenResult.claims.role || 'user';
-      console.log('User role:', role);
-      console.log('User UID:', user.uid);
-      // Load current email and password
+      console.log('User role:', role, 'UID:', user.uid);
       db.ref(`users/${user.uid}`).once('value', snapshot => {
         const userData = snapshot.val();
         document.getElementById('current-email').textContent = `Current Email: ${userData.email}`;
