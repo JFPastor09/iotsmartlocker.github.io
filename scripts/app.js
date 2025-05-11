@@ -286,9 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
           <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
           <td class="border p-2">
-            <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">${data.isOpen ? 'Close' : 'Open'}</button>
-            <button onclick="deleteLockerData('${locker.key}')" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Reset</button>
-            <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Update Password</button>
+            <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button>
+            <button onclick="deleteLockerData('${locker.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Reset</button>
+            <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Update Password</button>
           </td>
         </tr>`;
         lockersTable.querySelector('tbody').innerHTML += row;
@@ -308,8 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="border p-2">${data.role}</td>
           <td class="border p-2">${data.locker || 'None'}</td>
           <td class="border p-2">
-            <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Edit</button>
-            <button onclick="deleteUser('${user.key}')" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+            <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Edit</button>
+            <button onclick="deleteUser('${user.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Delete</button>
           </td>
         </tr>`;
         usersTable.querySelector('tbody').innerHTML += row;
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
             <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
             <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
-            <td class="border p-2"><button onclick="toggleLocker('${locker}', ${!data.isOpen})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">${data.isOpen ? 'Close' : 'Open'}</button></td>
+            <td class="border p-2"><button onclick="toggleLocker('${locker}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button></td>
           </tr>`;
         }, error => {
           console.error(`Error reading locker ${locker} data:`, error);
