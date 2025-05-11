@@ -2,166 +2,88 @@ console.log('app.js loaded');
 
 // Global scope functions for inline onclick handlers
 function toggleLocker(locker, isOpen) {
-  if (!window.db) {
-    console.error('Database not initialized');
-    return;
-  }
-
-  const eventData = {
-    event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
-    timestamp: new Date().toISOString()
-  };
-
-  console.log(`Attempting to toggle locker ${locker} to ${isOpen}, user UID: ${window.auth.currentUser ? window.auth.currentUser.uid : 'Not authenticated'}`);
-  console.log(`Event data:`, eventData);
+  if (!window.db) return;
+  const eventData = { event: isOpen ? 'Opened (Website)' : 'Closed (Website)', timestamp: new Date().toISOString() };
   window.db.ref(`lockers/${locker}/history/events`).push(eventData)
-    .then((snapshot) => {
-      console.log(`History event recorded for ${locker} with key: ${snapshot.key}`);
-      window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen)
-        .then(() => {
-          console.log(`Locker ${locker} state updated to ${isOpen}`);
-        })
-        .catch((error) => {
-          console.error(`Failed to update isOpen for ${locker}:`, error);
-          alert(`Failed to update locker state: ${error.message}`);
-        });
-    })
-    .catch((error) => {
-      console.error(`Failed to record history event for ${locker}:`, error);
-      console.log(`RTDB error details: ${error.code} - ${error.message}`);
-      alert(`Failed to log event: ${error.message}`);
-    });
+    .then(() => window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen))
+    .catch(error => alert(`Failed to update locker ${locker}: ${error.message}`));
 }
 
 function deleteLockerData(locker) {
-  if (window.db) {
-    window.db.ref(`lockers/${locker}/current`).set({
-      temperature: 0,
-      humidity: 0,
-      gasLevel: 0,
-      weight: 0,
-      isOpen: false
-    }).catch(error => {
-      console.error(`Reset failed for ${locker}:`, error);
-    });
-  } else {
-    console.error('Database not initialized');
-  }
+  if (window.db) window.db.ref(`lockers/${locker}/current`).set({ temperature: 0, humidity: 0, gasLevel: 0, weight: 0, isOpen: false });
 }
 
 function updateUser(uid, email, role, locker) {
-  const newEmail = prompt('Enter new email', email);
-  const newRole = prompt('Enter role (admin/user)', role);
-  const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
-  const newPassword = prompt('Enter new website password', '');
-  if (newEmail && newRole) {
-    if (window.db && window.firebase) {
-      window.db.ref(`users/${uid}`).update({
-        email: newEmail,
-        role: newRole,
-        locker: newLocker || null,
-        password: newPassword || null
-      }).catch(error => console.error(`User update failed for ${uid}:`, error));
-      window.firebase.auth().updateUser(uid, { email: newEmail }).catch(error => console.error(error));
-      window.firebase.auth().setCustomUserClaims(uid, { role: newRole }).catch(error => console.error(`Claims update failed for ${uid}:`, error));
-    } else {
-      console.error('Firebase or database not initialized');
+  if (window.db && window.firebase) {
+    const newEmail = prompt('Enter new email', email);
+    const newRole = prompt('Enter role (admin/user)', role);
+    const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
+    const newPassword = prompt('Enter new website password', '');
+    if (newEmail && newRole) {
+      window.db.ref(`users/${uid}`).update({ email: newEmail, role: newRole, locker: newLocker || null, password: newPassword || null });
+      window.firebase.auth().updateUser(uid, { email: newEmail });
+      window.firebase.auth().setCustomUserClaims(uid, { role: newRole });
     }
   }
 }
 
 function deleteUser(uid) {
   if (window.db && window.firebase) {
-    window.db.ref(`users/${uid}`).remove().catch(error => console.error(`User delete failed for ${uid}:`, error));
-    window.firebase.auth().deleteUser(uid).catch(error => console.error(error));
-  } else {
-    console.error('Firebase or database not initialized');
+    window.db.ref(`users/${uid}`).remove();
+    window.firebase.auth().deleteUser(uid);
   }
 }
 
 function updatePassword() {
-  if (window.auth && window.auth.currentUser) {
+  if (window.auth.currentUser) {
     const newPassword = document.getElementById('new-password').value;
     window.auth.currentUser.updatePassword(newPassword).then(() => {
-      window.db.ref(`users/${window.auth.currentUser.uid}`).update({ password: newPassword }).catch(error => {
-        console.error('Failed to update password in RTDB:', error);
-      });
+      window.db.ref(`users/${window.auth.currentUser.uid}`).update({ password: newPassword });
       document.getElementById('current-password').textContent = `Website Password: ${newPassword}`;
-    }).catch(error => {
-      if (error.code === 'auth/requires-recent-login') {
-        alert('This operation requires recent authentication. You will be logged out. Please log in again to update your password.');
-        window.auth.signOut().then(() => {
-          document.getElementById('login').style.display = 'block';
-          document.getElementById('dashboard').style.display = 'none';
-          document.getElementById('admin-panel').style.display = 'none';
-          document.getElementById('user-panel').style.display = 'none';
-        });
-      } else {
-        alert(error.message);
-      }
-    });
-  } else {
-    console.error('Authentication not initialized');
+    }).catch(error => alert(error.message));
   }
 }
 
 function updateEmail() {
-  if (window.auth && window.auth.currentUser) {
+  if (window.auth.currentUser) {
     const newEmail = document.getElementById('new-email').value;
     window.auth.currentUser.verifyBeforeUpdateEmail(newEmail).then(() => {
-      alert('Verification email sent. Please verify the new email before updating.');
       window.auth.currentUser.updateEmail(newEmail).then(() => {
-        window.db.ref(`users/${window.auth.currentUser.uid}`).update({ email: newEmail }).catch(error => {
-          console.error('Failed to update email in RTDB:', error);
-        });
+        window.db.ref(`users/${window.auth.currentUser.uid}`).update({ email: newEmail });
         document.getElementById('current-email').textContent = `Current Email: ${newEmail}`;
-      }).catch(error => {
-        console.error('Email update error:', error);
-        alert(error.message);
-      });
-    }).catch(error => {
-      console.error('Verification email error:', error);
-      if (error.code === 'auth/requires-recent-login') {
-        alert('This operation requires recent authentication. You will be logged out. Please log in again to update your email.');
-        window.auth.signOut().then(() => {
-          document.getElementById('login').style.display = 'block';
-          document.getElementById('dashboard').style.display = 'none';
-          document.getElementById('admin-panel').style.display = 'none';
-          document.getElementById('user-panel').style.display = 'none';
-        });
-      } else {
-        alert(error.message);
-      }
-    });
-  } else {
-    console.error('Authentication not initialized');
+      }).catch(error => alert(error.message));
+    }).catch(error => alert(error.message));
   }
 }
 
 function updateLockerPassword() {
-  if (window.auth && window.auth.currentUser && window.db) {
+  if (window.auth.currentUser && window.db) {
     window.db.ref(`users/${window.auth.currentUser.uid}`).once('value', snapshot => {
-      const userData = snapshot.val();
-      if (userData && userData.locker) {
+      if (snapshot.val()?.locker) {
         const newPassword = document.getElementById('locker-password').value;
-        window.db.ref(`lockers/${userData.locker}/user`).update({ password: newPassword }).then(() => {
-          alert('Locker password updated successfully');
-        }).catch(error => {
-          console.error('Failed to update locker password:', error);
-          alert(error.message);
-        });
-      } else {
-        alert('No locker assigned or user data not found');
-      }
+        window.db.ref(`lockers/${snapshot.val().locker}/user`).update({ password: newPassword });
+      } else alert('No locker assigned');
     });
+  }
+}
+
+function promptUpdateLockerPassword(locker, currentPassword) {
+  if (!window.db) {
+    alert('Database not initialized. Please try again.');
+    return;
+  }
+  const newPassword = prompt('Enter new locker password', currentPassword || '');
+  if (newPassword !== null && newPassword.trim() !== '') {
+    window.db.ref(`lockers/${locker}/user`).update({ password: newPassword })
+      .then(() => console.log(`Locker ${locker} password updated successfully`))
+      .catch(error => alert(`Failed to update locker password: ${error.message}`));
   } else {
-    console.error('Authentication or database not initialized');
+    console.log('Password update cancelled or empty input');
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.firebase) {
-    console.error('Firebase SDK not loaded');
     document.getElementById('error').textContent = 'Firebase SDK unavailable';
     return;
   }
@@ -182,19 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.database();
-    console.log('Firebase initialized');
     window.db = db;
     window.auth = auth;
     window.firebase = firebase;
   } catch (error) {
-    console.error('Firebase initialization error:', error);
     document.getElementById('error').textContent = 'Failed to initialize Firebase';
     return;
   }
 
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error => {
-    console.error('Persistence error:', error);
-  });
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
   const loginButton = document.getElementById('login-button');
   const logoutButton = document.getElementById('logout-button');
@@ -203,21 +121,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const isAdminLogin = document.getElementById('admin-login').checked;
-    console.log(`Attempting login for ${email} as ${isAdminLogin ? 'admin' : 'user'}`);
+    console.log(`Login attempt: ${email}, Admin: ${isAdminLogin}`);
 
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
-        console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
-        return userCredential.user.getIdTokenResult(true); // Return promise for chaining
+        console.log('Login successful, UID:', userCredential.user.uid);
+        return userCredential.user.getIdTokenResult(true);
       })
       .then(idTokenResult => {
-        console.log('Token result:', idTokenResult.claims);
+        console.log('Token claims:', idTokenResult.claims);
         const role = idTokenResult.claims.role || 'user';
-        console.log('User role from token:', role);
+        console.log('Detected role:', role);
 
-        // Check if login intent matches the user's role
         if (isAdminLogin && role !== 'admin') {
-          console.log('Login failed: User attempted admin login but role is not admin');
+          console.log('Admin login denied, role mismatch');
           document.getElementById('error').textContent = 'Invalid login: You do not have admin privileges.';
           return firebase.auth().signOut().then(() => {
             document.getElementById('login').style.display = 'block';
@@ -225,50 +142,35 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        // Proceed to load dashboard
-        console.log('Token refreshed after login, role verified');
         document.getElementById('login').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
         loadDashboard(firebase.auth().currentUser);
       })
       .catch(error => {
-        console.error('Login error:', error);
+        console.error('Login error:', error.code, error.message);
         document.getElementById('error').textContent = error.message;
       });
   }
 
   function logout() {
     auth.signOut().then(() => {
-      console.log('Logout successful');
       document.getElementById('login').style.display = 'block';
       document.getElementById('dashboard').style.display = 'none';
       document.getElementById('admin-panel').style.display = 'none';
       document.getElementById('user-panel').style.display = 'none';
-    }).catch(error => {
-      console.error('Logout error:', error);
-    });
+    }).catch(error => console.error('Logout error:', error));
   }
 
   function loadDashboard(user) {
     user.getIdTokenResult(true).then(idTokenResult => {
-      console.log('Token result:', idTokenResult.claims);
       const role = idTokenResult.claims.role || 'user';
-      console.log('User role:', role, 'UID:', user.uid);
       db.ref(`users/${user.uid}`).once('value', snapshot => {
-        const userData = snapshot.val();
-        if (!userData) {
-          console.error('No user data found for UID:', user.uid);
-          document.getElementById('current-email').textContent = 'Error: User data not found';
-          document.getElementById('current-password').textContent = 'Error: User data not found';
-          return;
-        }
-        console.log('User data from RTDB:', userData);
-        document.getElementById('current-email').textContent = `Current Email: ${userData.email}`;
+        const userData = snapshot.val() || {};
+        document.getElementById('current-email').textContent = `Current Email: ${userData.email || 'Not set'}`;
         document.getElementById('current-password').textContent = `Website Password: ${userData.password || 'Not set'}`;
       }).catch(error => {
-        console.error('Error fetching user data:', error);
-        document.getElementById('current-email').textContent = 'Error fetching user data';
-        document.getElementById('current-password').textContent = 'Error fetching user data';
+        console.error('Error reading user data:', error);
+        document.getElementById('error').textContent = 'Failed to load user data';
       });
 
       if (role === 'admin') {
@@ -283,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserPanel(user.uid);
       }
     }).catch(error => {
-      console.error('Error getting token result:', error);
+      console.error('Dashboard load error:', error);
       document.getElementById('error').textContent = 'Failed to load dashboard';
     });
   }
@@ -294,86 +196,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminHistoryList = document.getElementById('admin-history-list');
 
     db.ref('lockers').on('value', snapshot => {
-      if (!snapshot.exists()) {
-        console.error('No lockers data found');
-        lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
-        return;
-      }
-      console.log('Lockers snapshot:', snapshot.val());
       lockersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(locker => {
-        const lockerData = locker.val();
-        if (!lockerData.current) {
-          console.error(`No current data for ${locker.key}`);
-          return;
-        }
-        const data = lockerData.current;
-        const user = lockerData.user || {};
-        const row = `<tr>
-          <td class="border p-2">${locker.key}</td>
-          <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
-          <td class="border p-2">Humidity: ${data.humidity.toFixed(1)}%</td>
-          <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
-          <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
-          <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
-          <td class="border p-2">
-            <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button>
-            <button onclick="deleteLockerData('${locker.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Reset</button>
-            <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Update Password</button>
-          </td>
-        </tr>`;
-        lockersTable.querySelector('tbody').innerHTML += row;
+        const data = locker.val().current || {};
+        const user = locker.val().user || {};
+        lockersTable.querySelector('tbody').innerHTML += `<tr><td>${locker.key}</td><td>Temperature: ${data.temperature.toFixed(1)}°C</td><td>Humidity: ${data.humidity.toFixed(1)}%</td><td>Gas Level: ${data.gasLevel.toFixed(1)}%</td><td>Weight: ${data.weight.toFixed(1)}g</td><td>Status: ${data.isOpen ? 'Open' : 'Closed'}</td><td><button onclick="toggleLocker('${locker.key}', ${!data.isOpen})">${data.isOpen ? 'Close' : 'Open'}</button><button onclick="deleteLockerData('${locker.key}')">Reset</button><button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')">Update Password</button></td></tr>`;
       });
-    }, error => {
-      console.error('Error reading lockers:', error);
-      lockersTable.querySelector('tbody').innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
     });
 
     db.ref('users').on('value', snapshot => {
       usersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(user => {
         const data = user.val();
-        const row = `<tr>
-          <td class="border p-2">${data.email}</td>
-          <td class="border p-2">${data.password || 'Not set'}</td>
-          <td class="border p-2">${data.role}</td>
-          <td class="border p-2">${data.locker || 'None'}</td>
-          <td class="border p-2">
-            <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Edit</button>
-            <button onclick="deleteUser('${user.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Delete</button>
-          </td>
-        </tr>`;
-        usersTable.querySelector('tbody').innerHTML += row;
+        usersTable.querySelector('tbody').innerHTML += `<tr><td>${data.email}</td><td>${data.password || 'Not set'}</td><td>${data.role}</td><td>${data.locker || 'None'}</td><td><button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')">Edit</button><button onclick="deleteUser('${user.key}')">Delete</button></td></tr>`;
       });
-    }, error => {
-      console.error('Error reading users:', error);
     });
 
     db.ref('lockers').on('value', snapshot => {
       adminHistoryList.innerHTML = '';
-      if (!snapshot.exists()) {
-        console.error('No history data found');
-        adminHistoryList.innerHTML = '<li>No history data available</li>';
-        return;
-      }
-      console.log('History snapshot:', snapshot.val());
       snapshot.forEach(locker => {
-        const lockerData = locker.val();
-        if (!lockerData.history || !lockerData.history.events) {
-          console.warn(`No history events for ${locker.key}`);
-          return;
-        }
-        const history = lockerData.history.events;
-        Object.entries(history).forEach(([key, entry]) => {
+        const events = locker.val().history?.events || {};
+        Object.entries(events).forEach(([key, entry]) => {
           const formattedDate = new Date(entry.timestamp).toLocaleString();
-          const eventText = entry.value !== undefined ? `${entry.event}: ${entry.value}` : entry.event;
-          const listItem = `<li>${locker.key} - ${eventText} at ${formattedDate}</li>`;
-          adminHistoryList.innerHTML += listItem;
+          adminHistoryList.innerHTML += `<li>${locker.key} - ${entry.event} at ${formattedDate}</li>`;
         });
       });
-    }, error => {
-      console.error('Error reading history:', error);
-      adminHistoryList.innerHTML = `<li>Error: ${error.message}</li>`;
     });
   }
 
@@ -383,70 +230,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const userHistoryList = document.getElementById('user-history-list');
 
     db.ref(`users/${uid}`).once('value', snapshot => {
-      const data = snapshot.val();
-      if (!data) {
-        console.error('No user data found for UID:', uid);
-        lockerInfo.textContent = 'Error: User data not found';
-        table.innerHTML = '<tr><td colspan="6">User data not found</td></tr>';
-        userHistoryList.innerHTML = '<li>User data not found</li>';
-        return;
-      }
-      console.log('User data:', data);
+      const data = snapshot.val() || {};
       lockerInfo.textContent = `Assigned Locker: ${data.locker || 'None'}`;
-      
       if (data.locker) {
-        const locker = data.locker;
-        db.ref(`lockers/${locker}/current`).on('value', snapshot => {
-          const data = snapshot.val();
-          console.log('Locker data:', data);
-          table.innerHTML = `<tr>
-            <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
-            <td class="border p-2">Humidity: ${data.humidity.toFixed(1)}%</td>
-            <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
-            <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
-            <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
-            <td class="border p-2"><button onclick="toggleLocker('${locker}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button></td>
-          </tr>`;
-        }, error => {
-          console.error(`Error reading locker ${locker} data:`, error);
-          table.innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
+        db.ref(`lockers/${data.locker}/current`).on('value', snap => {
+          const d = snap.val() || {};
+          table.innerHTML = `<tr><td>Temperature: ${d.temperature.toFixed(1)}°C</td><td>Humidity: ${d.humidity.toFixed(1)}%</td><td>Gas Level: ${d.gasLevel.toFixed(1)}%</td><td>Weight: ${d.weight.toFixed(1)}g</td><td>Status: ${d.isOpen ? 'Open' : 'Closed'}</td><td><button onclick="toggleLocker('${data.locker}', ${!d.isOpen})">${d.isOpen ? 'Close' : 'Open'}</button></td></tr>`;
         });
-
-        db.ref(`lockers/${locker}/history/events`).on('value', snapshot => {
+        db.ref(`lockers/${data.locker}/history/events`).on('value', snap => {
           userHistoryList.innerHTML = '';
-          snapshot.forEach(entry => {
-            const data = entry.val();
-            const formattedDate = new Date(data.timestamp).toLocaleString();
-            const eventText = data.value !== undefined ? `${data.event}: ${data.value}` : data.event;
-            const listItem = `<li>${eventText} at ${formattedDate}</li>`;
-            userHistoryList.innerHTML += listItem;
+          snap.forEach(entry => {
+            const d = entry.val();
+            userHistoryList.innerHTML += `<li>${d.event} at ${new Date(d.timestamp).toLocaleString()}</li>`;
           });
-        }, error => {
-          console.error(`Error reading user history for ${locker}:`, error);
-          userHistoryList.innerHTML = `<li>Error: ${error.message}</li>`;
         });
       } else {
         table.innerHTML = '<tr><td colspan="6">No locker assigned</td></tr>';
         userHistoryList.innerHTML = '<li>No history available</li>';
       }
-    }, error => {
-      console.error('Error reading user data:', error);
-      lockerInfo.textContent = 'Error reading user data';
-      table.innerHTML = '<tr><td colspan="6">Error reading user data</td></tr>';
-      userHistoryList.innerHTML = '<li>Error reading user data</li>';
     });
-  }
-
-  function promptUpdateLockerPassword(locker, currentPassword) {
-    const newPassword = prompt('Enter new locker password', currentPassword);
-    if (newPassword) {
-      window.db.ref(`lockers/${locker}/user`).update({ password: newPassword }).then(() => {
-        alert('Locker password updated successfully');
-      }).catch(error => {
-        console.error(`Failed to update password for ${locker}:`, error);
-        alert(error.message);
-      });
-    }
   }
 
   loginButton.addEventListener('click', login);
