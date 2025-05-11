@@ -159,6 +159,18 @@ function updateLockerPassword() {
   }
 }
 
+function promptUpdateLockerPassword(locker, currentPassword) {
+  const newPassword = prompt('Enter new locker password', currentPassword);
+  if (newPassword) {
+    window.db.ref(`lockers/${locker}/user`).update({ password: newPassword }).then(() => {
+      alert('Locker password updated successfully');
+    }).catch(error => {
+      console.error(`Failed to update password for ${locker}:`, error);
+      alert(error.message);
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.firebase) {
     console.error('Firebase SDK not loaded');
@@ -435,18 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
       table.innerHTML = '<tr><td colspan="6">Error reading user data</td></tr>';
       userHistoryList.innerHTML = '<li>Error reading user data</li>';
     });
-  }
-
-  function promptUpdateLockerPassword(locker, currentPassword) {
-    const newPassword = prompt('Enter new locker password', currentPassword);
-    if (newPassword) {
-      window.db.ref(`lockers/${locker}/user`).update({ password: newPassword }).then(() => {
-        alert('Locker password updated successfully');
-      }).catch(error => {
-        console.error(`Failed to update password for ${locker}:`, error);
-        alert(error.message);
-      });
-    }
   }
 
   loginButton.addEventListener('click', login);
