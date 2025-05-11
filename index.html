@@ -29,59 +29,59 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center min-h-screen p-4">
-  <div id="login" class="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+<body class="bg-yellow-100 flex flex-col items-center min-h-screen p-4">
+  <div id="login" class="w-full max-w-md bg-yellow-300 p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-center text-sky-700">Login</h2>
     <div class="mb-4">
-      <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-      <input id="email" type="email" class="w-full p-2 border rounded-md" value="admin@lockers.com">
+      <label for="email" class="block text-sm font-medium text-sky-700">Email:</label>
+      <input id="email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin@lockers.com">
     </div>
     <div class="mb-4">
-      <label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
-      <input id="password" type="password" class="w-full p-2 border rounded-md" value="admin123">
+      <label for="password" class="block text-sm font-medium text-sky-700">Password:</label>
+      <input id="password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin123">
     </div>
-    <button id="login-button" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">Login</button>
-    <p id="error" class="text-red-500 mt-2 text-center"></p>
+    <button id="login-button" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Login</button>
+    <p id="error" class="text-orange-600 mt-2 text-center"></p>
   </div>
 
-  <div id="dashboard" class="hidden w-full max-w-4xl bg-white p-6 rounded-lg shadow-md mt-4">
-    <h1 id="dashboard-header" class="text-2xl font-bold mb-4 text-center"></h1>
-    <button id="logout-button" class="w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600 mb-4">Logout</button>
+  <div id="dashboard" class="hidden w-full max-w-4xl bg-yellow-200 p-6 rounded-lg shadow-md mt-4">
+    <h1 id="dashboard-header" class="text-2xl font-bold mb-4 text-center text-sky-700"></h1>
+    <button id="logout-button" class="w-full bg-orange-400 text-white p-2 rounded-md hover:bg-orange-500 transition duration-200 mb-4">Logout</button>
 
     <div id="admin-panel" class="hidden">
-      <h2 class="text-xl font-semibold mb-2">Lockers Data</h2>
+      <h2 class="text-xl font-semibold mb-2 text-sky-700">Lockers Data</h2>
       <div class="table-container mb-4">
-        <table id="lockers-table" class="w-full border-collapse border border-gray-300">
+        <table id="lockers-table" class="w-full border-collapse border border-sky-300">
           <thead>
-            <tr class="bg-gray-200">
-              <th class="border p-2">Locker Number</th>
-              <th class="border p-2">Temperature</th>
-              <th class="border p-2">Humidity</th>
-              <th class="border p-2">Gas Level</th>
-              <th class="border p-2">Weight</th>
-              <th class="border p-2">Status</th>
-              <th class="border p-2">Actions</th>
+            <tr class="bg-sky-100">
+              <th class="border p-2 text-sky-700">Locker Number</th>
+              <th class="border p-2 text-sky-700">Temperature</th>
+              <th class="border p-2 text-sky-700">Humidity</th>
+              <th class="border p-2 text-sky-700">Gas Level</th>
+              <th class="border p-2 text-sky-700">Weight</th>
+              <th class="border p-2 text-sky-700">Status</th>
+              <th class="border p-2 text-sky-700">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2">History Events</h2>
-      <div class="history-list mb-4 p-2 bg-gray-50 border rounded-md">
-        <ul id="admin-history-list" class="list-disc pl-5"></ul>
+      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
+      <div class="history-list mb-4 p-2 bg-sky-50 border rounded-md border-sky-200">
+        <ul id="admin-history-list" class="list-disc pl-5 text-sky-800"></ul>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2">Users</h2>
+      <h2 class="text-xl font-semibold mb-2 text-sky-700">Users</h2>
       <div class="table-container">
-        <table id="users-table" class="w-full border-collapse border border-gray-300">
+        <table id="users-table" class="w-full border-collapse border border-sky-300">
           <thead>
-            <tr class="bg-gray-200">
-              <th class="border p-2">Email</th>
-              <th class="border p-2">Website Password</th>
-              <th class="border p-2">Role</th>
-              <th class="border p-2">Locker</th>
-              <th class="border p-2">Actions</th>
+            <tr class="bg-sky-100">
+              <th class="border p-2 text-sky-700">Email</th>
+              <th class="border p-2 text-sky-700">Website Password</th>
+              <th class="border p-2 text-sky-700">Role</th>
+              <th class="border p-2 text-sky-700">Locker</th>
+              <th class="border p-2 text-sky-700">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -90,35 +90,35 @@
     </div>
 
     <div id="user-panel" class="hidden">
-      <p id="current-email" class="mb-2"></p>
+      <p id="current-email" class="mb-2 text-sky-800"></p>
       <div class="mb-4">
-        <label for="new-email" class="block text-sm font-medium text-gray-700">New Email:</label>
-        <input id="new-email" type="email" class="w-full p-2 border rounded-md mb-2">
-        <button onclick="updateEmail()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Email</button>
+        <label for="new-email" class="block text-sm font-medium text-sky-700">New Email:</label>
+        <input id="new-email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
+        <button onclick="updateEmail()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Email</button>
       </div>
-      <p id="current-password" class="mb-2"></p>
+      <p id="current-password" class="mb-2 text-sky-800"></p>
       <div class="mb-4">
-        <label for="new-password" class="block text-sm font-medium text-gray-700">New Website Password:</label>
-        <input id="new-password" type="password" class="w-full p-2 border rounded-md mb-2">
-        <button onclick="updatePassword()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Password</button>
+        <label for="new-password" class="block text-sm font-medium text-sky-700">New Website Password:</label>
+        <input id="new-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
+        <button onclick="updatePassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Password</button>
       </div>
-      <p id="user-locker-info" class="mb-2"></p>
+      <p id="user-locker-info" class="mb-2 text-sky-800"></p>
       <div class="mb-4">
-        <label for="locker-password" class="block text-sm font-medium text-gray-700">New Locker Password:</label>
-        <input id="locker-password" type="password" class="w-full p-2 border rounded-md mb-2">
-        <button onclick="updateLockerPassword()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Locker Password</button>
+        <label for="locker-password" class="block text-sm font-medium text-sky-700">New Locker Password:</label>
+        <input id="locker-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
+        <button onclick="updateLockerPassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Locker Password</button>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2">Locker Data</h2>
+      <h2 class="text-xl font-semibold mb-2 text-sky-700">Locker Data</h2>
       <div class="table-container mb-4">
-        <table id="user-locker-table" class="w-full border-collapse border border-gray-300">
+        <table id="user-locker-table" class="w-full border-collapse border border-sky-300">
           <tbody></tbody>
         </table>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2">History Events</h2>
-      <div class="history-list p-2 bg-gray-50 border rounded-md">
-        <ul id="user-history-list" class="list-disc pl-5"></ul>
+      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
+      <div class="history-list p-2 bg-sky-50 border rounded-md border-sky-200">
+        <ul id="user-history-list" class="list-disc pl-5 text-sky-800"></ul>
       </div>
     </div>
   </div>
