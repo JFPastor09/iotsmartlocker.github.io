@@ -23,6 +23,9 @@
   <div id="dashboard" style="display: none;">
     <h1 id="dashboard-header">Dashboard</h1>
     <button id="logout-button">Logout</button>
+    <h2>Account Information</h2>
+    <p id="current-email">Current Email: </p>
+    <p id="current-password">Website Password: </p>
     <h2>Update Account</h2>
     <input type="email" id="new-email" placeholder="New Email">
     <button onclick="updateEmail()">Update Email</button>
@@ -31,6 +34,7 @@
 
     <div id="admin-panel" style="display: none;">
       <h2>Admin Panel</h2>
+      <h3>Locker Data</h3>
       <table id="lockers-table">
         <tr>
           <th>Locker Number</th>
@@ -38,7 +42,6 @@
           <th>Humidity (%)</th>
           <th>Gas (%)</th>
           <th>Weight (g)</th>
-          <th>Presence</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -53,26 +56,19 @@
         </tr>
       </table>
       <h3>History Events</h3>
-      <table id="admin-history-table">
-        <tr>
-          <th>Locker</th>
-          <th>Event</th>
-          <th>Value</th>
-          <th>Timestamp</th>
-        </tr>
-      </table>
+      <canvas id="admin-history-chart" width="400" height="200"></canvas>
     </div>
 
     <div id="user-panel" style="display: none;">
       <h2>User Panel</h2>
       <p id="user-locker-info"></p>
+      <h3>Locker Data</h3>
       <table id="user-locker-table">
         <tr>
           <th>Temp (°C)</th>
           <th>Humidity (%)</th>
           <th>Gas (%)</th>
           <th>Weight (g)</th>
-          <th>Presence</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -81,13 +77,7 @@
       <input type="password" id="locker-password" placeholder="New Locker Password">
       <button onclick="updateLockerPassword()">Update Locker Password</button>
       <h3>History Events</h3>
-      <table id="user-history-table">
-        <tr>
-          <th>Event</th>
-          <th>Value</th>
-          <th>Timestamp</th>
-        </tr>
-      </table>
+      <canvas id="user-history-chart" width="400" height="200"></canvas>
     </div>
   </div>
 
