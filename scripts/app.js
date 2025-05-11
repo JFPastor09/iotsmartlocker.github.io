@@ -202,6 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function login() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const isAdminLogin = document.getElementById('admin-login').checked;
+    console.log(`Attempting login for ${email} as ${isAdminLogin ? 'admin' : 'user'}`);
+
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
@@ -282,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
         return;
       }
-      console.log('Lockers snapshot:', snapshot.val()); // Debug log for lockers data
+      console.log('Lockers snapshot:', snapshot.val());
       lockersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(locker => {
         const lockerData = locker.val();
@@ -339,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminHistoryList.innerHTML = '<li>No history data available</li>';
         return;
       }
-      console.log('History snapshot:', snapshot.val()); // Debug log for history data
+      console.log('History snapshot:', snapshot.val());
       snapshot.forEach(locker => {
         const lockerData = locker.val();
         if (!lockerData.history || !lockerData.history.events) {
