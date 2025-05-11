@@ -3,9 +3,9 @@ const firebaseConfig = {
        authDomain: "lockeriot-415dc.firebaseapp.com",
        databaseURL: "https://lockeriot-415dc-default-rtdb.asia-southeast1.firebasedatabase.app",
        projectId: "lockeriot-415dc",
-       storageBucket: "lockeriot-415dc.appspot.com",
-       messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-       appId: "YOUR_APP_ID"
+       storageBucket: "lockeriot-415dc.firebasestorage.app",
+       messagingSenderId: "522726216699",
+       appId: "1:522726216699:web:207d7f9a2b454a6ef5315e"
      };
 
      firebase.initializeApp(firebaseConfig);
