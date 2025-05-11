@@ -1,3 +1,5 @@
+console.log('app.js loaded'); // Debug: Confirm script load
+
 // Global scope functions for inline onclick handlers
 function toggleLocker(locker, isOpen) {
   if (window.db) {
@@ -55,6 +57,7 @@ function deleteUser(uid) {
 }
 
 function updatePassword() {
+  console.log('updatePassword called'); // Debug: Confirm function execution
   if (window.auth && window.auth.currentUser) {
     const newPassword = document.getElementById('new-password').value;
     window.auth.currentUser.updatePassword(newPassword).catch(error => {
