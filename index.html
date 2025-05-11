@@ -3,84 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IoT Smart Locker</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <title>Smart Locker Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom styles for responsiveness */
+    .table-container {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    .history-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    @media (max-width: 640px) {
+      .table-container th, .table-container td {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+      }
+      .history-list li {
+        font-size: 0.875rem;
+      }
+    }
+  </style>
 </head>
-<body>
-  <div id="login">
-    <h1>Login</h1>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="login-button">Login</button>
-    <p id="error"></p>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen p-4">
+  <div id="login" class="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+    <div class="mb-4">
+      <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+      <input id="email" type="email" class="w-full p-2 border rounded-md" value="admin@lockers.com">
+    </div>
+    <div class="mb-4">
+      <label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
+      <input id="password" type="password" class="w-full p-2 border rounded-md" value="admin123">
+    </div>
+    <button id="login-button" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">Login</button>
+    <p id="error" class="text-red-500 mt-2 text-center"></p>
   </div>
 
-  <div id="dashboard" style="display: none;">
-    <h1 id="dashboard-header">Dashboard</h1>
-    <button id="logout-button">Logout</button>
-    <h2>Account Information</h2>
-    <p id="current-email">Current Email: </p>
-    <p id="current-password">Website Password: </p>
-    <h2>Update Account</h2>
-    <input type="email" id="new-email" placeholder="New Email">
-    <button onclick="updateEmail()">Update Email</button>
-    <input type="password" id="new-password" placeholder="New Password">
-    <button onclick="updatePassword()">Update Password</button>
+  <div id="dashboard" class="hidden w-full max-w-4xl bg-white p-6 rounded-lg shadow-md mt-4">
+    <h1 id="dashboard-header" class="text-2xl font-bold mb-4 text-center"></h1>
+    <button id="logout-button" class="w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600 mb-4">Logout</button>
 
-    <div id="admin-panel" style="display: none;">
-      <h2>Admin Panel</h2>
-      <h3>Locker Data</h3>
-      <table id="lockers-table">
-        <tr>
-          <th>Locker Number</th>
-          <th>Temp (°C)</th>
-          <th>Humidity (%)</th>
-          <th>Gas (%)</th>
-          <th>Weight (g)</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </table>
-      <table id="users-table">
-        <tr>
-          <th>Email</th>
-          <th>Website Password</th>
-          <th>Role</th>
-          <th>Locker</th>
-          <th>Actions</th>
-        </tr>
-      </table>
-      <h3>History Events</h3>
-      <canvas id="admin-history-chart" width="400" height="200"></canvas>
+    <div id="admin-panel" class="hidden">
+      <h2 class="text-xl font-semibold mb-2">Lockers Data</h2>
+      <div class="table-container mb-4">
+        <table id="lockers-table" class="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border p-2">Locker Number</th>
+              <th class="border p-2">Temperature</th>
+              <th class="border p-2">Humidity</th>
+              <th class="border p-2">Gas Level</th>
+              <th class="border p-2">Weight</th>
+              <th class="border p-2">Status</th>
+              <th class="border p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-semibold mb-2">History Events</h2>
+      <div class="history-list mb-4 p-2 bg-gray-50 border rounded-md">
+        <ul id="admin-history-list" class="list-disc pl-5"></ul>
+      </div>
+
+      <h2 class="text-xl font-semibold mb-2">Users</h2>
+      <div class="table-container">
+        <table id="users-table" class="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border p-2">Email</th>
+              <th class="border p-2">Website Password</th>
+              <th class="border p-2">Role</th>
+              <th class="border p-2">Locker</th>
+              <th class="border p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div id="user-panel" style="display: none;">
-      <h2>User Panel</h2>
-      <p id="user-locker-info"></p>
-      <h3>Locker Data</h3>
-      <table id="user-locker-table">
-        <tr>
-          <th>Temp (°C)</th>
-          <th>Humidity (%)</th>
-          <th>Gas (%)</th>
-          <th>Weight (g)</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </table>
-      <h3>Update Locker Password</h3>
-      <input type="password" id="locker-password" placeholder="New Locker Password">
-      <button onclick="updateLockerPassword()">Update Locker Password</button>
-      <h3>History Events</h3>
-      <canvas id="user-history-chart" width="400" height="200"></canvas>
+    <div id="user-panel" class="hidden">
+      <p id="current-email" class="mb-2"></p>
+      <div class="mb-4">
+        <label for="new-email" class="block text-sm font-medium text-gray-700">New Email:</label>
+        <input id="new-email" type="email" class="w-full p-2 border rounded-md mb-2">
+        <button onclick="updateEmail()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Email</button>
+      </div>
+      <p id="current-password" class="mb-2"></p>
+      <div class="mb-4">
+        <label for="new-password" class="block text-sm font-medium text-gray-700">New Website Password:</label>
+        <input id="new-password" type="password" class="w-full p-2 border rounded-md mb-2">
+        <button onclick="updatePassword()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Password</button>
+      </div>
+      <p id="user-locker-info" class="mb-2"></p>
+      <div class="mb-4">
+        <label for="locker-password" class="block text-sm font-medium text-gray-700">New Locker Password:</label>
+        <input id="locker-password" type="password" class="w-full p-2 border rounded-md mb-2">
+        <button onclick="updateLockerPassword()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Update Locker Password</button>
+      </div>
+
+      <h2 class="text-xl font-semibold mb-2">Locker Data</h2>
+      <div class="table-container mb-4">
+        <table id="user-locker-table" class="w-full border-collapse border border-gray-300">
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h2 class="text-xl font-semibold mb-2">History Events</h2>
+      <div class="history-list p-2 bg-gray-50 border rounded-md">
+        <ul id="user-history-list" class="list-disc pl-5"></ul>
+      </div>
     </div>
   </div>
 
-  <script defer src="scripts/app.js"></script>
+  <script src="scripts/app.js"></script>
 </body>
 </html>
