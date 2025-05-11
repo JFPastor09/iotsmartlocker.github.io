@@ -226,11 +226,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       new Chart(ctx, {
         type: 'line',
-        data: { labels: times, datasets },
+        data: {
+          labels: times,
+          datasets: datasets
+        },
         options: {
           scales: {
-            x: { type: 'time', title: { display: true, text: 'Time' } },
-            y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
+            x: {
+              type: 'time',
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              min: 0,
+              max: 1,
+              title: {
+                display: true,
+                text: 'State (1=Open, 0=Closed)'
+              }
+            }
           }
         }
       });
@@ -251,22 +267,38 @@ document.addEventListener('DOMContentLoaded', () => {
           events.push(data.event.includes('Opened') ? 1 : 0);
         }
       });
+      console.log('User Chart Data:', { times, events }); // Debug chart data
       new Chart(ctx, {
         type: 'line',
         data: {
           labels: times,
-          datasets: [{
-            label: 'Open/Close',
-            data: events,
-            borderColor: 'blue',
-            fill: false,
-            stepped: true
-          }]
+          datasets: [
+            {
+              label: 'Open/Close',
+              data: events,
+              borderColor: 'blue',
+              fill: false,
+              stepped: true
+            }
+          ]
         },
         options: {
           scales: {
-            x: { type: 'time', title: { display: true, text: 'Time' } },
-            y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
+            x: {
+              type: 'time',
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              min: 0,
+              max: 1,
+              title: {
+                display: true,
+                text: 'State (1=Open, 0=Closed)'
+              }
+            }
           }
         }
       });
