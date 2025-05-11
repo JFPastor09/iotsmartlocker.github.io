@@ -1,27 +1,78 @@
 body {
-       font-family: Arial, sans-serif;
-       margin: 20px;
-     }
-     #login, #dashboard {
-       max-width: 800px;
-       margin: auto;
-     }
-     input, button {
-       margin: 10px;
-       padding: 5px;
-     }
-     table {
-       width: 100%;
-       border-collapse: collapse;
-     }
-     th, td {
-       border: 1px solid #ddd;
-       padding: 8px;
-       text-align: left;
-     }
-     th {
-       background-color: #f2f2f2;
-     }
-     canvas {
-       max-width: 100%;
-     }
+  font-family: Arial, sans-serif;
+  background-color: #87CEEB;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  background-color: #FFC107;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 400px;
+}
+
+h1 {
+  color: #87CEEB;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #87CEEB;
+  margin-top: 0;
+}
+
+input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #87CEEB;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+button {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 5px;
+  background-color: #87CEEB;
+  color: #FFC107;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #76c7e0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #fff;
+}
+
+th, td {
+  border: 1px solid #87CEEB;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #FFC107;
+  color: #87CEEB;
+}
+
+canvas {
+  margin: 20px 0;
+  background-color: #fff;
+  border: 1px solid #87CEEB;
+  border-radius: 5px;
+}
