@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function loadDashboard(user) {
       user.getIdTokenResult().then(idTokenResult => {
-        const role = idTokenResult.claims.role;
+        const role = idTokenResult.claims.role || 'user'; // Fallback to 'user' if role is undefined
         console.log('User role:', role);
         if (role === 'admin') {
           document.getElementById('admin-panel').style.display = 'block';
