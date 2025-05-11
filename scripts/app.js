@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadDashboard(user) {
     user.getIdTokenResult(true).then(idTokenResult => {
+      console.log('Token result:', idTokenResult.claims); // Debug log for token claims
       const role = idTokenResult.claims.role || 'user';
       console.log('User role:', role, 'UID:', user.uid);
       db.ref(`users/${user.uid}`).once('value', snapshot => {
@@ -239,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('current-password').textContent = 'Error: User data not found';
           return;
         }
+        console.log('User data from RTDB:', userData); // Debug log for user data
         document.getElementById('current-email').textContent = `Current Email: ${userData.email}`;
         document.getElementById('current-password').textContent = `Website Password: ${userData.password || 'Not set'}`;
       }).catch(error => {
