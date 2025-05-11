@@ -87,7 +87,17 @@ function updatePassword() {
       });
       document.getElementById('current-password').textContent = `Website Password: ${newPassword}`;
     }).catch(error => {
-      alert(error.message);
+      if (error.code === 'auth/requires-recent-login') {
+        alert('This operation requires recent authentication. You will be logged out. Please log in again to update your password.');
+        window.auth.signOut().then(() => {
+          document.getElementById('login').style.display = 'block';
+          document.getElementById('dashboard').style.display = 'none';
+          document.getElementById('admin-panel').style.display = 'none';
+          document.getElementById('user-panel').style.display = 'none';
+        });
+      } else {
+        alert(error.message);
+      }
     });
   } else {
     console.error('Authentication not initialized');
@@ -110,7 +120,17 @@ function updateEmail() {
       });
     }).catch(error => {
       console.error('Verification email error:', error);
-      alert(error.message);
+      if (error.code === 'auth/requires-recent-login') {
+        alert('This operation requires recent authentication. You will be logged out. Please log in again to update your email.');
+        window.auth.signOut().then(() => {
+          document.getElementById('login').style.display = 'block';
+          document.getElementById('dashboard').style.display = 'none';
+          document.getElementById('admin-panel').style.display = 'none';
+          document.getElementById('user-panel').style.display = 'none';
+        });
+      } else {
+        alert(error.message);
+      }
     });
   } else {
     console.error('Authentication not initialized');
