@@ -3,132 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Locker Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>IoT Locker Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
   <style>
-    /* Custom styles for responsiveness */
-    .table-container {
-      max-width: 100%;
-      overflow-x: auto;
-    }
-    .history-list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    @media (max-width: 640px) {
-      .table-container th, .table-container td {
-        font-size: 0.75rem;
-        padding: 0.5rem;
-      }
-      .history-list li {
-        font-size: 0.875rem;
-      }
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #login, #dashboard { display: none; }
+    #error { color: red; }
+    table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    button { padding: 5px 10px; margin: 2px; }
   </style>
 </head>
-<body class="bg-yellow-100 flex flex-col items-center min-h-screen p-4">
-  <div id="login" class="w-full max-w-md bg-yellow-300 p-6 rounded-lg shadow-md">
-    <h1 class="text-3xl font-bold mb-4 text-center text-sky-700">IoT Locker</h1>
-    <h2 class="text-2xl font-bold mb-4 text-center text-sky-700">Login</h2>
-    <div class="mb-4">
-      <label for="email" class="block text-sm font-medium text-sky-700">Email:</label>
-      <input id="email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin@lockers.com">
-    </div>
-    <div class="mb-4">
-      <label for="password" class="block text-sm font-medium text-sky-700">Password:</label>
-      <input id="password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin123">
-    </div>
-    <div class="mb-4 flex items-center">
-      <input type="checkbox" id="admin-login" class="mr-2 border-sky-300 focus:ring-sky-200">
-      <label for="admin-login" class="text-sm text-sky-700">Log in as Admin</label>
-    </div>
-    <button id="login-button" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Login</button>
-    <p id="error" class="text-orange-600 mt-2 text-center"></p>
+<body>
+  <div id="login">
+    <h2>IoT Locker Login</h2>
+    <input type="text" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <label><input type="checkbox" id="admin-login"> Log in as Admin</label><br>
+    <button id="login-button">Login</button>
+    <p id="error"></p>
   </div>
 
-  <div id="dashboard" class="hidden w-full max-w-4xl bg-yellow-200 p-6 rounded-lg shadow-md mt-4">
-    <h1 class="text-3xl font-bold mb-4 text-center text-sky-700">IoT Locker</h1>
-    <h1 id="dashboard-header" class="text-2xl font-bold mb-4 text-center text-sky-700"></h1>
-    <button id="logout-button" class="w-full bg-orange-400 text-white p-2 rounded-md hover:bg-orange-500 transition duration-200 mb-4">Logout</button>
+  <div id="dashboard">
+    <h2 id="dashboard-header">Dashboard</h2>
+    <p id="current-email">Current Email: Not set</p>
+    <p id="current-password">Website Password: Not set</p>
+    <input type="text" id="new-email" placeholder="New Email"><button onclick="updateEmail()">Update Email</button><br>
+    <input type="password" id="new-password" placeholder="New Password"><button onclick="updatePassword()">Update Password</button><br>
+    <input type="password" id="locker-password" placeholder="New Locker Password"><button onclick="updateLockerPassword()">Update Locker Password</button><br>
 
-    <div id="admin-panel" class="hidden">
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Lockers Data</h2>
-      <div class="table-container mb-4">
-        <table id="lockers-table" class="w-full border-collapse border border-sky-300">
-          <thead>
-            <tr class="bg-sky-100">
-              <th class="border p-2 text-sky-700">Locker Number</th>
-              <th class="border p-2 text-sky-700">Temperature</th>
-              <th class="border p-2 text-sky-700">Humidity</th>
-              <th class="border p-2 text-sky-700">Gas Level</th>
-              <th class="border p-2 text-sky-700">Weight</th>
-              <th class="border p-2 text-sky-700">Status</th>
-              <th class="border p-2 text-sky-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
-      <div class="history-list mb-4 p-2 bg-sky-50 border rounded-md border-sky-200">
-        <ul id="admin-history-list" class="list-disc pl-5 text-sky-800"></ul>
-      </div>
-
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Users</h2>
-      <div class="table-container">
-        <table id="users-table" class="w-full border-collapse border border-sky-300">
-          <thead>
-            <tr class="bg-sky-100">
-              <th class="border p-2 text-sky-700">Email</th>
-              <th class="border p-2 text-sky-700">Website Password</th>
-              <th class="border p-2 text-sky-700">Role</th>
-              <th class="border p-2 text-sky-700">Locker</th>
-              <th class="border p-2 text-sky-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div id="admin-panel" style="display: none;">
+      <h3>Lockers</h3>
+      <table id="lockers-table">
+        <thead><tr><th>Locker</th><th>Temperature</th><th>Humidity</th><th>Gas Level</th><th>Weight</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h3>Users</h3>
+      <table id="users-table">
+        <thead><tr><th>Email</th><th>Password</th><th>Role</th><th>Locker</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h3>History</h3>
+      <ul id="admin-history-list"></ul>
     </div>
 
-    <div id="user-panel" class="hidden">
-      <p id="current-email" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="new-email" class="block text-sm font-medium text-sky-700">New Email:</label>
-        <input id="new-email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updateEmail()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Email</button>
-      </div>
-      <p id="current-password" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="new-password" class="block text-sm font-medium text-sky-700">New Website Password:</label>
-        <input id="new-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updatePassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Password</button>
-      </div>
-      <p id="user-locker-info" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="locker-password" class="block text-sm font-medium text-sky-700">New Locker Password:</label>
-        <input id="locker-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updateLockerPassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Locker Password</button>
-      </div>
-
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Locker Data</h2>
-      <div class="table-container mb-4">
-        <table id="user-locker-table" class="w-full border-collapse border border-sky-300">
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
-      <div class="history-list p-2 bg-sky-50 border rounded-md border-sky-200">
-        <ul id="user-history-list" class="list-disc pl-5 text-sky-800"></ul>
-      </div>
+    <div id="user-panel" style="display: none;">
+      <h3>Locker Info</h3>
+      <p id="user-locker-info">Assigned Locker: None</p>
+      <table id="user-locker-table">
+        <thead><tr><th>Temperature</th><th>Humidity</th><th>Gas Level</th><th>Weight</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <h3>History</h3>
+      <ul id="user-history-list"></ul>
     </div>
+
+    <button id="logout-button">Logout</button>
   </div>
 
-  <script src="scripts/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
