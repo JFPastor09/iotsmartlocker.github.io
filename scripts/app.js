@@ -2,19 +2,32 @@ console.log('app.js loaded');
 
 // Global scope functions for inline onclick handlers
 function toggleLocker(locker, isOpen) {
-  if (window.db) {
-    window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen).catch(error => {
-      console.error(`Toggle failed for ${locker}:`, error);
-    });
-    window.db.ref(`lockers/${locker}/history/events`).push({
-      event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
-      timestamp: new Date().toISOString()
-    }).catch(error => {
-      console.error(`History push failed for ${locker}:`, error);
-    });
-  } else {
+  if (!window.db) {
     console.error('Database not initialized');
+    return;
   }
+
+  const eventData = {
+    event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
+    timestamp: new Date().toISOString()
+  };
+
+  window.db.ref(`lockers/${locker}/history/events`).push(eventData)
+    .then((snapshot) => {
+      console.log(`History event recorded for ${locker} with key: ${snapshot.key}`);
+      window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen)
+        .then(() => {
+          console.log(`Locker ${locker} state updated to ${isOpen}`);
+        })
+        .catch((error) => {
+          console.error(`Failed to update isOpen for ${locker}:`, error);
+          alert(`Failed to update locker state: ${error.message}`);
+        });
+    })
+    .catch((error) => {
+      console.error(`Failed to record history event for ${locker}:`, error);
+      alert(`Failed to log event: ${error.message}`);
+    });
 }
 
 function deleteLockerData(locker) {
@@ -82,10 +95,8 @@ function updatePassword() {
 function updateEmail() {
   if (window.auth && window.auth.currentUser) {
     const newEmail = document.getElementById('new-email').value;
-    // Send verification email first
     window.auth.currentUser.verifyBeforeUpdateEmail(newEmail).then(() => {
       alert('Verification email sent. Please verify the new email before updating.');
-      // After verification, the user can log in again and update the email
       window.auth.currentUser.updateEmail(newEmail).then(() => {
         window.db.ref(`users/${window.auth.currentUser.uid}`).update({ email: newEmail }).catch(error => {
           console.error('Failed to update email in RTDB:', error);
@@ -219,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersTable = document.getElementById('users-table');
     const historyTable = document.getElementById('admin-history-table');
     
-    // Load lockers data
     db.ref('lockers').on('value', snapshot => {
       if (!snapshot.exists()) {
         console.error('No lockers data found');
@@ -251,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
       lockersTable.innerHTML = `<tr><td colspan="8">Error: ${error.message}</td></tr>`;
     });
 
-    // Load users data
     db.ref('users').on('value', snapshot => {
       usersTable.innerHTML = '<tr><th>Email</th><th>Website Password</th><th>Role</th><th>Locker</th><th>Actions</th></tr>';
       snapshot.forEach(user => {
@@ -272,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error reading users:', error);
     });
 
-    // Load history events for all lockers
     db.ref('lockers').on('value', snapshot => {
       historyTable.innerHTML = '<tr><th>Locker</th><th>Event</th><th>Value</th><th>Timestamp</th></tr>';
       snapshot.forEach(locker => {
@@ -325,7 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
           table.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
         });
 
-        // Load history events for the user's locker
         db.ref(`lockers/${locker}/history/events`).on('value', snapshot => {
           historyTable.innerHTML = '<tr><th>Event</th><th>Value</th><th>Timestamp</th></tr>';
           snapshot.forEach(entry => {
