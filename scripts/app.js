@@ -1,3 +1,60 @@
+// Global scope functions for inline onclick handlers
+function toggleLocker(locker, isOpen) {
+  // Ensure db is available (will be set in DOMContentLoaded)
+  if (window.db) {
+    window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen);
+    window.db.ref(`lockers/${locker}/history/events`).push({
+      event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    console.error('Database not initialized');
+  }
+}
+
+function deleteLockerData(locker) {
+  if (window.db) {
+    window.db.ref(`lockers/${locker}/current`).set({
+      temperature: 0,
+      humidity: 0,
+      gasLevel: 0,
+      weight: 0,
+      presence: false,
+      isOpen: false
+    });
+  } else {
+    console.error('Database not initialized');
+  }
+}
+
+function updateUser(uid, email, role, locker) {
+  const newEmail = prompt('Enter new email', email);
+  const newRole = prompt('Enter role (admin/user)', role);
+  const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
+  if (newEmail && newRole) {
+    if (window.db && window.firebase) {
+      window.db.ref(`users/${uid}`).update({
+        email: newEmail,
+        role: newRole,
+        locker: newLocker || null
+      });
+      window.firebase.auth().updateUser(uid, { email: newEmail }).catch(error => console.error(error));
+      window.firebase.auth().setCustomUserClaims(uid, { role: newRole });
+    } else {
+      console.error('Firebase or database not initialized');
+    }
+  }
+}
+
+function deleteUser(uid) {
+  if (window.db && window.firebase) {
+    window.db.ref(`users/${uid}`).remove();
+    window.firebase.auth().deleteUser(uid).catch(error => console.error(error));
+  } else {
+    console.error('Firebase or database not initialized');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.firebase) {
     console.error('Firebase SDK not loaded');
@@ -22,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     auth = firebase.auth();
     db = firebase.database();
     console.log('Firebase initialized');
+    // Attach db and firebase to window for global functions
+    window.db = db;
+    window.firebase = firebase;
   } catch (error) {
     console.error('Firebase initialization error:', error);
     document.getElementById('error').textContent = 'Failed to initialize Firebase';
@@ -153,45 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, error => {
       console.error('Error reading user data:', error);
     });
-  }
-
-  function toggleLocker(locker, isOpen) {
-    db.ref(`lockers/${locker}/current/isOpen`).set(isOpen);
-    db.ref(`lockers/${locker}/history/events`).push({
-      event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  function deleteLockerData(locker) {
-    db.ref(`lockers/${locker}/current`).set({
-      temperature: 0,
-      humidity: 0,
-      gasLevel: 0,
-      weight: 0,
-      presence: false,
-      isOpen: false
-    });
-  }
-
-  function updateUser(uid, email, role, locker) {
-    const newEmail = prompt('Enter new email', email);
-    const newRole = prompt('Enter role (admin/user)', role);
-    const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
-    if (newEmail && newRole) {
-      db.ref(`users/${uid}`).update({
-        email: newEmail,
-        role: newRole,
-        locker: newLocker || null
-      });
-      firebase.auth().updateUser(uid, { email: newEmail }).catch(error => console.error(error));
-      firebase.auth().setCustomUserClaims(uid, { role: newRole });
-    }
-  }
-
-  function deleteUser(uid) {
-    db.ref(`users/${uid}`).remove();
-    firebase.auth().deleteUser(uid).catch(error => console.error(error));
   }
 
   function updatePassword() {
