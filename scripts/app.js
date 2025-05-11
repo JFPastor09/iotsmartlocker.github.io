@@ -266,7 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
         options: {
           scales: {
             x: { type: 'time', title: { display: true, text: 'Time' } },
-          y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
+            y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
+          }
         }
       });
     }, error => {
