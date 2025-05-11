@@ -13,6 +13,7 @@ function toggleLocker(locker, isOpen) {
   };
 
   console.log(`Attempting to toggle locker ${locker} to ${isOpen}, user UID: ${window.auth.currentUser ? window.auth.currentUser.uid : 'Not authenticated'}`);
+  console.log(`Event data:`, eventData); // Debug log for event data
   window.db.ref(`lockers/${locker}/history/events`).push(eventData)
     .then((snapshot) => {
       console.log(`History event recorded for ${locker} with key: ${snapshot.key}`);
