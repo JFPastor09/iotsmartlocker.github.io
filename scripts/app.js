@@ -13,7 +13,7 @@ function toggleLocker(locker, isOpen) {
   };
 
   console.log(`Attempting to toggle locker ${locker} to ${isOpen}, user UID: ${window.auth.currentUser ? window.auth.currentUser.uid : 'Not authenticated'}`);
-  console.log(`Event data:`, eventData); // Debug log for event data
+  console.log(`Event data:`, eventData);
   window.db.ref(`lockers/${locker}/history/events`).push(eventData)
     .then((snapshot) => {
       console.log(`History event recorded for ${locker} with key: ${snapshot.key}`);
@@ -205,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
-        // Force token refresh after login
         userCredential.user.getIdToken(true).then(() => {
           console.log('Token refreshed after login');
           document.getElementById('login').style.display = 'none';
@@ -235,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadDashboard(user) {
     user.getIdTokenResult(true).then(idTokenResult => {
-      console.log('Token result:', idTokenResult.claims); // Debug log for token claims
+      console.log('Token result:', idTokenResult.claims);
       const role = idTokenResult.claims.role || 'user';
       console.log('User role:', role, 'UID:', user.uid);
       db.ref(`users/${user.uid}`).once('value', snapshot => {
@@ -246,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('current-password').textContent = 'Error: User data not found';
           return;
         }
-        console.log('User data from RTDB:', userData); // Debug log for user data
+        console.log('User data from RTDB:', userData);
         document.getElementById('current-email').textContent = `Current Email: ${userData.email}`;
         document.getElementById('current-password').textContent = `Website Password: ${userData.password || 'Not set'}`;
       }).catch(error => {
@@ -283,10 +282,16 @@ document.addEventListener('DOMContentLoaded', () => {
         lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
         return;
       }
+      console.log('Lockers snapshot:', snapshot.val()); // Debug log for lockers data
       lockersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(locker => {
-        const data = locker.val().current;
-        const user = locker.val().user || {};
+        const lockerData = locker.val();
+        if (!lockerData.current) {
+          console.error(`No current data for ${locker.key}`);
+          return;
+        }
+        const data = lockerData.current;
+        const user = lockerData.user || {};
         const row = `<tr>
           <td class="border p-2">${locker.key}</td>
           <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
@@ -329,8 +334,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     db.ref('lockers').on('value', snapshot => {
       adminHistoryList.innerHTML = '';
+      if (!snapshot.exists()) {
+        console.error('No history data found');
+        adminHistoryList.innerHTML = '<li>No history data available</li>';
+        return;
+      }
+      console.log('History snapshot:', snapshot.val()); // Debug log for history data
       snapshot.forEach(locker => {
-        const history = locker.val().history?.events || {};
+        const lockerData = locker.val();
+        if (!lockerData.history || !lockerData.history.events) {
+          console.warn(`No history events for ${locker.key}`);
+          return;
+        }
+        const history = lockerData.history.events;
         Object.entries(history).forEach(([key, entry]) => {
           const formattedDate = new Date(entry.timestamp).toLocaleString();
           const eventText = entry.value !== undefined ? `${entry.event}: ${entry.value}` : entry.event;
