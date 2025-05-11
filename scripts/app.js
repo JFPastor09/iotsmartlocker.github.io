@@ -141,7 +141,7 @@ function updateLockerPassword() {
   if (window.auth && window.auth.currentUser && window.db) {
     window.db.ref(`users/${window.auth.currentUser.uid}`).once('value', snapshot => {
       const userData = snapshot.val();
-      if (userData.locker) {
+      if (userData && userData.locker) {
         const newPassword = document.getElementById('locker-password').value;
         window.db.ref(`lockers/${userData.locker}/user`).update({ password: newPassword }).then(() => {
           alert('Locker password updated successfully');
@@ -150,7 +150,7 @@ function updateLockerPassword() {
           alert(error.message);
         });
       } else {
-        alert('No locker assigned');
+        alert('No locker assigned or user data not found');
       }
     });
   } else {
@@ -232,10 +232,18 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('User role:', role, 'UID:', user.uid);
       db.ref(`users/${user.uid}`).once('value', snapshot => {
         const userData = snapshot.val();
+        if (!userData) {
+          console.error('No user data found for UID:', user.uid);
+          document.getElementById('current-email').textContent = 'Error: User data not found';
+          document.getElementById('current-password').textContent = 'Error: User data not found';
+          return;
+        }
         document.getElementById('current-email').textContent = `Current Email: ${userData.email}`;
         document.getElementById('current-password').textContent = `Website Password: ${userData.password || 'Not set'}`;
       }).catch(error => {
         console.error('Error fetching user data:', error);
+        document.getElementById('current-email').textContent = 'Error fetching user data';
+        document.getElementById('current-password').textContent = 'Error fetching user data';
       });
 
       if (role === 'admin') {
@@ -336,6 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = snapshot.val();
       if (!data) {
         console.error('No user data found for UID:', uid);
+        lockerInfo.textContent = 'Error: User data not found';
+        table.innerHTML = '<tr><td colspan="6">User data not found</td></tr>';
+        userHistoryList.innerHTML = '<li>User data not found</li>';
         return;
       }
       console.log('User data:', data);
@@ -378,6 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, error => {
       console.error('Error reading user data:', error);
+      lockerInfo.textContent = 'Error reading user data';
+      table.innerHTML = '<tr><td colspan="6">Error reading user data</td></tr>';
+      userHistoryList.innerHTML = '<li>Error reading user data</li>';
     });
   }
 
