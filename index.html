@@ -1,72 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Locker System</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <div id="login">
-    <h1>Smart Locker Login</h1>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="login-button">Login</button>
-    <p id="error"></p>
-  </div>
-  <div id="dashboard" style="display:none">
-    <h1>Smart Locker Dashboard</h1>
-    <button id="logout-button">Logout</button>
-    <div id="admin-panel" style="display:none">
-      <h2>Admin Panel</h2>
-      <table id="lockers-table">
-        <tr>
-          <th>Locker</th>
-          <th>Temp (°C)</th>
-          <th>Humidity (%)</th>
-          <th>Gas (%)</th>
-          <th>Weight (g)</th>
-          <th>Presence</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </table>
-      <h3>User Management</h3>
-      <table id="users-table">
-        <tr>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Locker</th>
-          <th>Actions</th>
-        </tr>
-      </table>
-      <h3>Lockers History Chart</h3>
-      <canvas id="admin-chart"></canvas>
-    </div>
-    <div id="user-panel" style="display:none">
-      <h2>Your Locker</h2>
-      <table id="user-locker-table">
-        <tr>
-          <th>Temp (°C)</th>
-          <th>Humidity (%)</th>
-          <th>Gas (%)</th>
-          <th>Weight (g)</th>
-          <th>Presence</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </table>
-      <h3>Edit Password</h3>
-      <input type="password" id="new-password" placeholder="New Password">
-      <button onclick="updatePassword()">Update Password</button>
-      <h3>Locker History Chart</h3>
-      <canvas id="user-chart"></canvas>
-    </div>
-  </div>
-  <script defer src="scripts/app.js"></script>
-</body>
-</html>
+   <html lang="en">
+   <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Smart Locker System</title>
+     <link rel="stylesheet" href="styles.css">
+     <script id="firebase-app" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+     <script id="firebase-auth" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
+     <script id="firebase-database" src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
+     <script id="chart-js" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   </head>
+   <body>
+     <div id="login">
+       <h1>Smart Locker Login</h1>
+       <input type="email" id="email" placeholder="Email">
+       <input type="password" id="password" placeholder="Password">
+       <button id="login-button">Login</button>
+       <p id="error"></p>
+     </div>
+     <div id="dashboard" style="display:none">
+       <h1>Smart Locker Dashboard</h1>
+       <button id="logout-button">Logout</button>
+       <div id="admin-panel" style="display:none">
+         <h2>Admin Panel</h2>
+         <table id="lockers-table">
+           <tr>
+             <th>Locker</th>
+             <th>Temp (°C)</th>
+             <th>Humidity (%)</th>
+             <th>Gas (%)</th>
+             <th>Weight (g)</th>
+             <th>Presence</th>
+             <th>Status</th>
+             <th>Actions</th>
+           </tr>
+         </table>
+         <h3>User Management</h3>
+         <table id="users-table">
+           <tr>
+             <th>Email</th>
+             <th>Role</th>
+             <th>Locker</th>
+             <th>Actions</th>
+           </tr>
+         </table>
+         <h3>Lockers History Chart</h3>
+         <canvas id="admin-chart"></canvas>
+       </div>
+       <div id="user-panel" style="display:none">
+         <h2>Your Locker</h2>
+         <table id="user-locker-table">
+           <tr>
+             <th>Temp (°C)</th>
+             <th>Humidity (%)</th>
+             <th>Gas (%)</th>
+             <th>Weight (g)</th>
+             <th>Presence</th>
+             <th>Status</th>
+             <th>Action</th>
+           </tr>
+         </table>
+         <h3>Edit Password</h3>
+         <input type="password" id="new-password" placeholder="New Password">
+         <button onclick="updatePassword()">Update Password</button>
+         <h3>Locker History Chart</h3>
+         <canvas id="user-chart"></canvas>
+       </div>
+     </div>
+     <script defer id="app-js" src="scripts/app.js"></script>
+   </body>
+   </html>
