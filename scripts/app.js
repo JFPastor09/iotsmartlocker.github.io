@@ -2,11 +2,16 @@ console.log('app.js loaded'); // Debug: Confirm script load
 
 // Global scope functions for inline onclick handlers
 function toggleLocker(locker, isOpen) {
+  console.log(`Attempting to toggle locker ${locker} to ${isOpen}`); // Debug
   if (window.db) {
-    window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen);
+    window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen).catch(error => {
+      console.error(`Toggle failed for ${locker}:`, error);
+    });
     window.db.ref(`lockers/${locker}/history/events`).push({
       event: isOpen ? 'Opened (Website)' : 'Closed (Website)',
       timestamp: new Date().toISOString()
+    }).catch(error => {
+      console.error(`History push failed for ${locker}:`, error);
     });
   } else {
     console.error('Database not initialized');
@@ -14,6 +19,7 @@ function toggleLocker(locker, isOpen) {
 }
 
 function deleteLockerData(locker) {
+  console.log(`Attempting to reset locker ${locker}`); // Debug
   if (window.db) {
     window.db.ref(`lockers/${locker}/current`).set({
       temperature: 0,
@@ -22,6 +28,8 @@ function deleteLockerData(locker) {
       weight: 0,
       presence: false,
       isOpen: false
+    }).catch(error => {
+      console.error(`Reset failed for ${locker}:`, error);
     });
   } else {
     console.error('Database not initialized');
@@ -29,6 +37,7 @@ function deleteLockerData(locker) {
 }
 
 function updateUser(uid, email, role, locker) {
+  console.log(`Attempting to update user ${uid}`); // Debug
   const newEmail = prompt('Enter new email', email);
   const newRole = prompt('Enter role (admin/user)', role);
   const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
@@ -38,9 +47,9 @@ function updateUser(uid, email, role, locker) {
         email: newEmail,
         role: newRole,
         locker: newLocker || null
-      });
+      }).catch(error => console.error(`User update failed for ${uid}:`, error));
       window.firebase.auth().updateUser(uid, { email: newEmail }).catch(error => console.error(error));
-      window.firebase.auth().setCustomUserClaims(uid, { role: newRole });
+      window.firebase.auth().setCustomUserClaims(uid, { role: newRole }).catch(error => console.error(`Claims update failed for ${uid}:`, error));
     } else {
       console.error('Firebase or database not initialized');
     }
@@ -48,8 +57,9 @@ function updateUser(uid, email, role, locker) {
 }
 
 function deleteUser(uid) {
+  console.log(`Attempting to delete user ${uid}`); // Debug
   if (window.db && window.firebase) {
-    window.db.ref(`users/${uid}`).remove();
+    window.db.ref(`users/${uid}`).remove().catch(error => console.error(`User delete failed for ${uid}:`, error));
     window.firebase.auth().deleteUser(uid).catch(error => console.error(error));
   } else {
     console.error('Firebase or database not initialized');
@@ -134,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadDashboard(user) {
+    console.log('Loading dashboard for UID:', user.uid); // Debug
     user.getIdTokenResult(true).then(idTokenResult => {
       const role = idTokenResult.claims.role || 'user';
       console.log('User role:', role);
@@ -152,9 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadAdminPanel() {
+    console.log('Loading admin panel'); // Debug
     const lockersTable = document.getElementById('lockers-table');
     const usersTable = document.getElementById('users-table');
     db.ref('lockers').on('value', snapshot => {
+      console.log('Reading lockers data'); // Debug
       lockersTable.innerHTML = '<tr><th>Locker</th><th>Temp (°C)</th><th>Humidity (%)</th><th>Gas (%)</th><th>Weight (g)</th><th>Presence</th><th>Status</th><th>Actions</th></tr>';
       snapshot.forEach(locker => {
         const data = locker.val().current;
@@ -177,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error reading lockers:', error);
     });
     db.ref('users').on('value', snapshot => {
+      console.log('Reading users data'); // Debug
       usersTable.innerHTML = '<tr><th>Email</th><th>Role</th><th>Locker</th><th>Actions</th></tr>';
       snapshot.forEach(user => {
         const data = user.val();
@@ -198,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadUserPanel(uid) {
+    console.log(`Loading user panel for UID: ${uid}`); // Debug
     db.ref(`users/${uid}`).once('value', snapshot => {
       const data = snapshot.val();
       if (!data) console.error('No user data found for UID:', uid);
@@ -206,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const locker = data.locker;
         const table = document.getElementById('user-locker-table');
         db.ref(`lockers/${locker}/current`).on('value', snapshot => {
+          console.log(`Reading locker ${locker} data`); // Debug
           const data = snapshot.val();
           console.log('Locker data:', data);
           table.innerHTML = `<tr>
@@ -218,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td><button onclick="toggleLocker('${locker}', ${!data.isOpen})">${data.isOpen ? 'Close' : 'Open'}</button></td>
           </tr>`;
         }, error => {
-          console.error('Error reading locker data:', error);
+          console.error(`Error reading locker ${locker} data:`, error);
         });
         loadUserChart(locker);
       } else {
@@ -230,8 +246,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadAdminChart() {
+    console.log('Loading admin chart'); // Debug
     const ctx = document.getElementById('admin-chart').getContext('2d');
     db.ref('lockers').once('value', snapshot => {
+      console.log('Reading lockers for chart'); // Debug
       const datasets = [];
       const lockers = ['locker1', 'locker2', 'locker3'];
       lockers.forEach(locker => {
@@ -284,8 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadUserChart(locker) {
+    console.log(`Loading user chart for locker ${locker}`); // Debug
     const ctx = document.getElementById('user-chart').getContext('2d');
     db.ref(`lockers/${locker}/history/events`).once('value', snapshot => {
+      console.log(`Reading history for locker ${locker}`); // Debug
       const times = [];
       const events = [];
       snapshot.forEach(entry => {
@@ -295,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
           events.push(data.event.includes('Opened') ? 1 : 0);
         }
       });
-      console.log('User Chart Data:', { times, events }); // Debug chart data
+      console.log('User Chart Data:', { times, events });
       new Chart(ctx, {
         type: 'line',
         data: {
@@ -331,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }, error => {
-      console.error('Error reading user chart data:', error);
+      console.error(`Error reading user chart data for ${locker}:`, error);
     });
   }
 
