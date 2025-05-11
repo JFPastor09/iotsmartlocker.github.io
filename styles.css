@@ -1,0 +1,27 @@
+body {
+       font-family: Arial, sans-serif;
+       margin: 20px;
+     }
+     #login, #dashboard {
+       max-width: 800px;
+       margin: auto;
+     }
+     input, button {
+       margin: 10px;
+       padding: 5px;
+     }
+     table {
+       width: 100%;
+       border-collapse: collapse;
+     }
+     th, td {
+       border: 1px solid #ddd;
+       padding: 8px;
+       text-align: left;
+     }
+     th {
+       background-color: #f2f2f2;
+     }
+     canvas {
+       max-width: 100%;
+     }
