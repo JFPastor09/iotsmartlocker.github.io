@@ -208,32 +208,28 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
-        userCredential.user.getIdTokenResult(true).then(idTokenResult => {
-          console.log('Token result:', idTokenResult.claims);
-          const role = idTokenResult.claims.role || 'user';
+        return userCredential.user.getIdTokenResult(true); // Return promise for chaining
+      })
+      .then(idTokenResult => {
+        console.log('Token result:', idTokenResult.claims);
+        const role = idTokenResult.claims.role || 'user';
+        console.log('User role from token:', role);
 
-          // Check if login intent matches the user's role
-          if (isAdminLogin && role !== 'admin') {
-            console.log('Login failed: User attempted admin login but role is not admin');
-            document.getElementById('error').textContent = 'Invalid login: You do not have admin privileges.';
-            firebase.auth().signOut().then(() => {
-              document.getElementById('login').style.display = 'block';
-              document.getElementById('dashboard').style.display = 'none';
-            }).catch(signOutError => {
-              console.error('Sign out error after failed admin login:', signOutError);
-            });
-            return;
-          }
+        // Check if login intent matches the user's role
+        if (isAdminLogin && role !== 'admin') {
+          console.log('Login failed: User attempted admin login but role is not admin');
+          document.getElementById('error').textContent = 'Invalid login: You do not have admin privileges.';
+          return firebase.auth().signOut().then(() => {
+            document.getElementById('login').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+          });
+        }
 
-          // Proceed to load dashboard if role matches intent
-          console.log('Token refreshed after login');
-          document.getElementById('login').style.display = 'none';
-          document.getElementById('dashboard').style.display = 'block';
-          loadDashboard(userCredential.user);
-        }).catch(error => {
-          console.error('Token refresh error:', error);
-          document.getElementById('error').textContent = 'Failed to verify user role: ' + error.message;
-        });
+        // Proceed to load dashboard
+        console.log('Token refreshed after login, role verified');
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadDashboard(firebase.auth().currentUser);
       })
       .catch(error => {
         console.error('Login error:', error);
