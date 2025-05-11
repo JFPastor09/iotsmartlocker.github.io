@@ -1,13 +1,13 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #87CEEB; /* Sky blue background */
-  color: #333;
+  color: #000000; /* Black text for all body content */
   margin: 0;
   padding: 20px;
 }
 
 h1, h2, h3 {
-  color: #FFFF99; /* Yellow headers */
+  color: #000000; /* Black headers (was yellow) */
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
@@ -17,7 +17,7 @@ input, button {
   border: 1px solid #FFA500; /* Orange border */
   border-radius: 5px;
   background-color: #FFFF99; /* Yellow background */
-  color: #333;
+  color: #000000; /* Black text (was #333) */
 }
 
 button {
@@ -28,7 +28,7 @@ button {
 
 button:hover {
   background-color: #FFA500; /* Orange on hover */
-  color: #FFF;
+  color: #FFF; /* White text on hover for contrast */
 }
 
 table {
@@ -42,11 +42,11 @@ th, td {
   padding: 10px;
   border: 1px solid #FFA500; /* Orange borders */
   text-align: center;
+  color: #000000; /* Black text for table headers and cells */
 }
 
 th {
   background-color: #87CEEB; /* Sky blue header */
-  color: #FFF;
 }
 
 canvas {
@@ -77,5 +77,5 @@ canvas {
 }
 
 #error {
-  color: #FFA500; /* Orange error text */
+  color: #000000; /* Black error text (was orange) */
 }
