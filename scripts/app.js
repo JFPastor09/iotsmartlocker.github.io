@@ -258,212 +258,79 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadAdminPanel() {
     const lockersTable = document.getElementById('lockers-table');
     const usersTable = document.getElementById('users-table');
-    let adminChart;
+    const adminHistoryList = document.getElementById('admin-history-list');
 
     db.ref('lockers').on('value', snapshot => {
       if (!snapshot.exists()) {
         console.error('No lockers data found');
-        lockersTable.innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
+        lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
         return;
       }
-      lockersTable.innerHTML = '<tr><th>Locker Number</th><th>Temp (°C)</th><th>Humidity (%)</th><th>Gas (%)</th><th>Weight (g)</th><th>Status</th><th>Actions</th></tr>';
+      lockersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(locker => {
         const data = locker.val().current;
         const user = locker.val().user || {};
         const row = `<tr>
-          <td>${locker.key}</td>
-          <td>${data.temperature.toFixed(1)}</td>
-          <td>${data.humidity.toFixed(1)}</td>
-          <td>${data.gasLevel.toFixed(1)}</td>
-          <td>${data.weight.toFixed(1)}</td>
-          <td>${data.isOpen ? 'Open' : 'Closed'}</td>
-          <td>
-            <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})">${data.isOpen ? 'Close' : 'Open'}</button>
-            <button onclick="deleteLockerData('${locker.key}')">Reset</button>
-            <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')">Update Password</button>
+          <td class="border p-2">${locker.key}</td>
+          <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
+          <td class="border p-2">Humidity: ${data.humidity.toFixed(1)}%</td>
+          <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
+          <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
+          <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
+          <td class="border p-2">
+            <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">${data.isOpen ? 'Close' : 'Open'}</button>
+            <button onclick="deleteLockerData('${locker.key}')" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Reset</button>
+            <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')" class="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600">Update Password</button>
           </td>
         </tr>`;
-        lockersTable.innerHTML += row;
+        lockersTable.querySelector('tbody').innerHTML += row;
       });
     }, error => {
       console.error('Error reading lockers:', error);
-      lockersTable.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
+      lockersTable.querySelector('tbody').innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
     });
 
     db.ref('users').on('value', snapshot => {
-      usersTable.innerHTML = '<tr><th>Email</th><th>Website Password</th><th>Role</th><th>Locker</th><th>Actions</th></tr>';
+      usersTable.querySelector('tbody').innerHTML = '';
       snapshot.forEach(user => {
         const data = user.val();
         const row = `<tr>
-          <td>${data.email}</td>
-          <td>${data.password || 'Not set'}</td>
-          <td>${data.role}</td>
-          <td>${data.locker || 'None'}</td>
-          <td>
-            <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')">Edit</button>
-            <button onclick="deleteUser('${user.key}')">Delete</button>
-        </td>
+          <td class="border p-2">${data.email}</td>
+          <td class="border p-2">${data.password || 'Not set'}</td>
+          <td class="border p-2">${data.role}</td>
+          <td class="border p-2">${data.locker || 'None'}</td>
+          <td class="border p-2">
+            <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">Edit</button>
+            <button onclick="deleteUser('${user.key}')" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
+          </td>
         </tr>`;
-        usersTable.innerHTML += row;
+        usersTable.querySelector('tbody').innerHTML += row;
       });
     }, error => {
       console.error('Error reading users:', error);
     });
 
     db.ref('lockers').on('value', snapshot => {
-      const ctx = document.getElementById('admin-history-chart').getContext('2d');
-      const datasets = {
-        openClose: [],
-        temperature: [],
-        humidity: [],
-        weight: [],
-        gasLevel: []
-      };
-
+      adminHistoryList.innerHTML = '';
       snapshot.forEach(locker => {
         const history = locker.val().history?.events || {};
         Object.entries(history).forEach(([key, entry]) => {
-          const timestamp = new Date(entry.timestamp).getTime();
-          if (entry.event.includes('Opened') || entry.event.includes('Closed')) {
-            datasets.openClose.push({
-              x: timestamp,
-              y: entry.event.includes('Opened') ? 1 : 0,
-              locker: locker.key
-            });
-          } else if (entry.event.includes('Temperature')) {
-            datasets.temperature.push({
-              x: timestamp,
-              y: entry.value,
-              locker: locker.key
-            });
-          } else if (entry.event.includes('Humidity')) {
-            datasets.humidity.push({
-              x: timestamp,
-              y: entry.value,
-              locker: locker.key
-            });
-          } else if (entry.event.includes('Weight')) {
-            datasets.weight.push({
-              x: timestamp,
-              y: entry.value,
-              locker: locker.key
-            });
-          } else if (entry.event.includes('Gas Level')) {
-            datasets.gasLevel.push({
-              x: timestamp,
-              y: entry.value,
-              locker: locker.key
-            });
-          }
+          const formattedDate = new Date(entry.timestamp).toLocaleString();
+          const eventText = entry.value !== undefined ? `${entry.event}: ${entry.value}` : entry.event;
+          const listItem = `<li>${locker.key} - ${eventText} at ${formattedDate}</li>`;
+          adminHistoryList.innerHTML += listItem;
         });
-      });
-
-      if (adminChart) {
-        adminChart.destroy();
-      }
-
-      adminChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          datasets: [
-            {
-              label: 'Open/Close',
-              data: datasets.openClose,
-              borderColor: 'blue',
-              fill: false,
-              stepped: true,
-              pointRadius: 5,
-              yAxisID: 'y-openclose'
-            },
-            {
-              label: 'Temperature (°C)',
-              data: datasets.temperature,
-              borderColor: 'red',
-              fill: false,
-              yAxisID: 'y-sensors'
-            },
-            {
-              label: 'Humidity (%)',
-              data: datasets.humidity,
-              borderColor: 'green',
-              fill: false,
-              yAxisID: 'y-sensors'
-            },
-            {
-              label: 'Weight (g)',
-              data: datasets.weight,
-              borderColor: 'purple',
-              fill: false,
-              yAxisID: 'y-sensors'
-            },
-            {
-              label: 'Gas Level (%)',
-              data: datasets.gasLevel,
-              borderColor: 'orange',
-              fill: false,
-              yAxisID: 'y-sensors'
-            }
-          ]
-        },
-        options: {
-          scales: {
-            x: {
-              type: 'time',
-              time: {
-                unit: 'minute'
-              },
-              title: {
-                display: true,
-                text: 'Time'
-              }
-            },
-            'y-openclose': {
-              type: 'linear',
-              position: 'left',
-              title: {
-                display: true,
-                text: 'Open (1) / Closed (0)'
-              },
-              min: 0,
-              max: 1,
-              ticks: {
-                stepSize: 1
-              }
-            },
-            'y-sensors': {
-              type: 'linear',
-              position: 'right',
-              title: {
-                display: true,
-                text: 'Sensor Values'
-              },
-              grid: {
-                drawOnChartArea: false
-              }
-            }
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const dataset = context.dataset;
-                  const point = context.raw;
-                  return `${dataset.label} (${point.locker}): ${point.y}`;
-                }
-              }
-            }
-          }
-        }
       });
     }, error => {
       console.error('Error reading history:', error);
+      adminHistoryList.innerHTML = `<li>Error: ${error.message}</li>`;
     });
   }
 
   function loadUserPanel(uid) {
     const table = document.getElementById('user-locker-table');
     const lockerInfo = document.getElementById('user-locker-info');
-    let userChart;
+    const userHistoryList = document.getElementById('user-history-list');
 
     db.ref(`users/${uid}`).once('value', snapshot => {
       const data = snapshot.val();
@@ -480,12 +347,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = snapshot.val();
           console.log('Locker data:', data);
           table.innerHTML = `<tr>
-            <td>${data.temperature.toFixed(1)}</td>
-            <td>${data.humidity.toFixed(1)}</td>
-            <td>${data.gasLevel.toFixed(1)}</td>
-            <td>${data.weight.toFixed(1)}</td>
-            <td>${data.isOpen ? 'Open' : 'Closed'}</td>
-            <td><button onclick="toggleLocker('${locker}', ${!data.isOpen})">${data.isOpen ? 'Close' : 'Open'}</button></td>
+            <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
+            <td class="border p-2">Humidity: ${data.humidity.toFixed(1)}%</td>
+            <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
+            <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
+            <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
+            <td class="border p-2"><button onclick="toggleLocker('${locker}', ${!data.isOpen})" class="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600">${data.isOpen ? 'Close' : 'Open'}</button></td>
           </tr>`;
         }, error => {
           console.error(`Error reading locker ${locker} data:`, error);
@@ -493,142 +360,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         db.ref(`lockers/${locker}/history/events`).on('value', snapshot => {
-          const datasets = {
-            openClose: [],
-            temperature: [],
-            humidity: [],
-            weight: [],
-            gasLevel: []
-          };
-
+          userHistoryList.innerHTML = '';
           snapshot.forEach(entry => {
             const data = entry.val();
-            const timestamp = new Date(data.timestamp).getTime();
-            if (data.event.includes('Opened') || data.event.includes('Closed')) {
-              datasets.openClose.push({
-                x: timestamp,
-                y: data.event.includes('Opened') ? 1 : 0
-              });
-            } else if (data.event.includes('Temperature')) {
-              datasets.temperature.push({
-                x: timestamp,
-                y: data.value
-              });
-            } else if (data.event.includes('Humidity')) {
-              datasets.humidity.push({
-                x: timestamp,
-                y: data.value
-              });
-            } else if (data.event.includes('Weight')) {
-              datasets.weight.push({
-                x: timestamp,
-                y: data.value
-              });
-            } else if (data.event.includes('Gas Level')) {
-              datasets.gasLevel.push({
-                x: timestamp,
-                y: data.value
-              });
-            }
-          });
-
-          const ctx = document.getElementById('user-history-chart').getContext('2d');
-          if (userChart) {
-            userChart.destroy();
-          }
-
-          userChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              datasets: [
-                {
-                  label: 'Open/Close',
-                  data: datasets.openClose,
-                  borderColor: 'blue',
-                  fill: false,
-                  stepped: true,
-                  pointRadius: 5,
-                  yAxisID: 'y-openclose'
-                },
-                {
-                  label: 'Temperature (°C)',
-                  data: datasets.temperature,
-                  borderColor: 'red',
-                  fill: false,
-                  yAxisID: 'y-sensors'
-                },
-                {
-                  label: 'Humidity (%)',
-                  data: datasets.humidity,
-                  borderColor: 'green',
-                  fill: false,
-                  yAxisID: 'y-sensors'
-                },
-                {
-                  label: 'Weight (g)',
-                  data: datasets.weight,
-                  borderColor: 'purple',
-                  fill: false,
-                  yAxisID: 'y-sensors'
-                },
-                {
-                  label: 'Gas Level (%)',
-                  data: datasets.gasLevel,
-                  borderColor: 'orange',
-                  fill: false,
-                  yAxisID: 'y-sensors'
-                }
-              ]
-            },
-            options: {
-              scales: {
-                x: {
-                  type: 'time',
-                  time: {
-                    unit: 'minute'
-                  },
-                  title: {
-                    display: true,
-                    text: 'Time'
-                  }
-                },
-                'y-openclose': {
-                  type: 'linear',
-                  position: 'left',
-                  title: {
-                    display: true,
-                    text: 'Open (1) / Closed (0)'
-                  },
-                  min: 0,
-                  max: 1,
-                  ticks: {
-                    stepSize: 1
-                  }
-                },
-                'y-sensors': {
-                  type: 'linear',
-                  position: 'right',
-                  title: {
-                    display: true,
-                    text: 'Sensor Values'
-                  },
-                  grid: {
-                    drawOnChartArea: false
-                  }
-                }
-              }
-            }
+            const formattedDate = new Date(data.timestamp).toLocaleString();
+            const eventText = data.value !== undefined ? `${data.event}: ${data.value}` : data.event;
+            const listItem = `<li>${eventText} at ${formattedDate}</li>`;
+            userHistoryList.innerHTML += listItem;
           });
         }, error => {
           console.error(`Error reading user history for ${locker}:`, error);
+          userHistoryList.innerHTML = `<li>Error: ${error.message}</li>`;
         });
       } else {
         table.innerHTML = '<tr><td colspan="6">No locker assigned</td></tr>';
-        const ctx = document.getElementById('user-history-chart').getContext('2d');
-        if (userChart) {
-          userChart.destroy();
-        }
-        ctx.canvas.style.display = 'none';
+        userHistoryList.innerHTML = '<li>No history available</li>';
       }
     }, error => {
       console.error('Error reading user data:', error);
