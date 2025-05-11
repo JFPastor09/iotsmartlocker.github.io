@@ -205,9 +205,15 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        loadDashboard(userCredential.user);
+        // Force token refresh after login
+        userCredential.user.getIdToken(true).then(() => {
+          console.log('Token refreshed after login');
+          document.getElementById('login').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          loadDashboard(userCredential.user);
+        }).catch(error => {
+          console.error('Token refresh error:', error);
+        });
       })
       .catch(error => {
         console.error('Login error:', error);
