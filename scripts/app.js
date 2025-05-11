@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+  if (!window.firebase) {
+    console.error('Firebase SDK not loaded');
+    document.getElementById('error').textContent = 'Firebase SDK unavailable';
+    return;
+  }
+
   const firebaseConfig = {
     apiKey: "AIzaSyDSD2v54Rd7aeXWoKp5_Dy6xP3Yq9gAyro",
     authDomain: "lockeriot-415dc.firebaseapp.com",
@@ -54,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadDashboard(user) {
-    user.getIdTokenResult().then(idTokenResult => {
+    user.getIdTokenResult(true).then(idTokenResult => {
       const role = idTokenResult.claims.role || 'user';
       console.log('User role:', role);
       console.log('User UID:', user.uid); // Debug UID
@@ -107,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>
             <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')">Edit</button>
             <button onclick="deleteUser('${user.key}')">Delete</button>
-          </td>
+        </td>
         </tr>`;
         usersTable.innerHTML += row;
       });
@@ -120,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadUserPanel(uid) {
     db.ref(`users/${uid}`).once('value', snapshot => {
       const data = snapshot.val();
-      if (!data) console.error('No user data found for UID:', uid); // Debug
+      if (!data) console.error('No user data found for UID:', uid);
       console.log('User data:', data);
       if (data && data.locker) {
         const locker = data.locker;
@@ -145,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('user-locker-table').innerHTML = '<tr><td colspan="7">No locker assigned</td></tr>';
       }
     }, error => {
-      console.error('RTDB error:', error);
+      console.error('Error reading user data:', error);
     });
   }
 
@@ -260,8 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         options: {
           scales: {
             x: { type: 'time', title: { display: true, text: 'Time' } },
-            y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
-          }
+          y: { min: 0, max: 1, title: { display: true, text: 'State (1=Open, 0=Closed)' } }
         }
       });
     }, error => {
