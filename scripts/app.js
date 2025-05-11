@@ -160,6 +160,7 @@ function updateLockerPassword() {
 }
 
 function promptUpdateLockerPassword(locker, currentPassword) {
+  console.log('promptUpdateLockerPassword called for locker:', locker); // Debug log
   const newPassword = prompt('Enter new locker password', currentPassword);
   if (newPassword) {
     window.db.ref(`lockers/${locker}/user`).update({ password: newPassword }).then(() => {
@@ -169,6 +170,12 @@ function promptUpdateLockerPassword(locker, currentPassword) {
       alert(error.message);
     });
   }
+}
+
+// Ensure the function is available globally
+if (typeof window.promptUpdateLockerPassword === 'undefined') {
+  window.promptUpdateLockerPassword = promptUpdateLockerPassword;
+  console.warn('promptUpdateLockerPassword was not defined in window, added manually');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -227,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const role = idTokenResult.claims.role || 'user';
         console.log('User role from token:', role);
 
-        // Check if login intent matches the user's role
         if (isAdminLogin && role !== 'admin') {
           console.log('Login failed: User attempted admin login but role is not admin');
           document.getElementById('error').textContent = 'Invalid login: You do not have admin privileges.';
@@ -237,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
 
-        // Proceed to load dashboard
         console.log('Token refreshed after login, role verified');
         document.getElementById('login').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
