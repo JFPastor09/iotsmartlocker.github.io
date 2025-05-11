@@ -3,30 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Locker Dashboard</title>
+  <title>IoT Smart Locker</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 <body>
   <div id="login">
-    <h1>Smart Locker Login</h1>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
     <p id="error"></p>
   </div>
 
   <div id="dashboard" style="display: none;">
-    <h1>Smart Locker Dashboard</h1>
+    <h1>Dashboard</h1>
     <button id="logout-button">Logout</button>
+    <h2>Update Account</h2>
+    <input type="email" id="new-email" placeholder="New Email">
+    <button onclick="updateEmail()">Update Email</button>
+    <input type="password" id="new-password" placeholder="New Password">
+    <button onclick="updatePassword()">Update Password</button>
 
     <div id="admin-panel" style="display: none;">
       <h2>Admin Panel</h2>
-      <h3>Lockers</h3>
       <table id="lockers-table">
         <tr>
           <th>Locker</th>
@@ -39,7 +43,6 @@
           <th>Actions</th>
         </tr>
       </table>
-      <h3>Users</h3>
       <table id="users-table">
         <tr>
           <th>Email</th>
@@ -48,13 +51,12 @@
           <th>Actions</th>
         </tr>
       </table>
-      <h3>Locker Activity</h3>
       <canvas id="admin-chart"></canvas>
     </div>
 
     <div id="user-panel" style="display: none;">
       <h2>User Panel</h2>
-      <table>
+      <table id="user-locker-table">
         <tr>
           <th>Temp (°C)</th>
           <th>Humidity (%)</th>
@@ -62,15 +64,13 @@
           <th>Weight (g)</th>
           <th>Presence</th>
           <th>Status</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
-        <tbody id="user-locker-table"></tbody>
       </table>
-      <h3>Locker Activity</h3>
+      <h3>Update Locker Password</h3>
+      <input type="password" id="locker-password" placeholder="New Locker Password">
+      <button onclick="updateLockerPassword()">Update Locker Password</button>
       <canvas id="user-chart"></canvas>
-      <h3>Change Password</h3>
-      <input type="password" id="new-password" placeholder="New Password">
-      <button onclick="updatePassword()">Update Password</button>
     </div>
   </div>
 
