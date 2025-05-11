@@ -1,6 +1,5 @@
 // Global scope functions for inline onclick handlers
 function toggleLocker(locker, isOpen) {
-  // Ensure db is available (will be set in DOMContentLoaded)
   if (window.db) {
     window.db.ref(`lockers/${locker}/current/isOpen`).set(isOpen);
     window.db.ref(`lockers/${locker}/history/events`).push({
@@ -55,6 +54,17 @@ function deleteUser(uid) {
   }
 }
 
+function updatePassword() {
+  if (window.auth && window.auth.currentUser) {
+    const newPassword = document.getElementById('new-password').value;
+    window.auth.currentUser.updatePassword(newPassword).catch(error => {
+      alert(error.message);
+    });
+  } else {
+    console.error('Authentication not initialized');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!window.firebase) {
     console.error('Firebase SDK not loaded');
@@ -79,8 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
     auth = firebase.auth();
     db = firebase.database();
     console.log('Firebase initialized');
-    // Attach db and firebase to window for global functions
+    // Attach db, auth, and firebase to window for global functions
     window.db = db;
+    window.auth = auth;
     window.firebase = firebase;
   } catch (error) {
     console.error('Firebase initialization error:', error);
@@ -212,13 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, error => {
       console.error('Error reading user data:', error);
-    });
-  }
-
-  function updatePassword() {
-    const newPassword = document.getElementById('new-password').value;
-    auth.currentUser.updatePassword(newPassword).catch(error => {
-      alert(error.message);
     });
   }
 
