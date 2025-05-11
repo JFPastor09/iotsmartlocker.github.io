@@ -160,7 +160,7 @@ function updateLockerPassword() {
 }
 
 function promptUpdateLockerPassword(locker, currentPassword) {
-  console.log('promptUpdateLockerPassword called for locker:', locker); // Debug log
+  console.log('promptUpdateLockerPassword called for locker:', locker);
   const newPassword = prompt('Enter new locker password', currentPassword);
   if (newPassword) {
     window.db.ref(`lockers/${locker}/user`).update({ password: newPassword }).then(() => {
@@ -176,6 +176,21 @@ function promptUpdateLockerPassword(locker, currentPassword) {
 if (typeof window.promptUpdateLockerPassword === 'undefined') {
   window.promptUpdateLockerPassword = promptUpdateLockerPassword;
   console.warn('promptUpdateLockerPassword was not defined in window, added manually');
+}
+
+function updateLockerStatus(locker, currentStatus) {
+  const newStatus = prompt('Enter new status (vacant/occupied/vacant&&for maintenance/occupied&&for maintenance)', currentStatus);
+  const validStatuses = ['vacant', 'occupied', 'vacant&&for maintenance', 'occupied&&for maintenance'];
+  if (newStatus && validStatuses.includes(newStatus)) {
+    window.db.ref(`lockers/${locker}/status`).set(newStatus).then(() => {
+      alert('Locker status updated successfully');
+    }).catch(error => {
+      console.error(`Failed to update status for ${locker}:`, error);
+      alert(error.message);
+    });
+  } else if (newStatus) {
+    alert('Invalid status. Please use: vacant, occupied, vacant&&for maintenance, or occupied&&for maintenance');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -227,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then(userCredential => {
         console.log('Login successful:', userCredential.user.email, 'UID:', userCredential.user.uid);
-        return userCredential.user.getIdTokenResult(true); // Return promise for chaining
+        return userCredential.user.getIdTokenResult(true);
       })
       .then(idTokenResult => {
         console.log('Token result:', idTokenResult.claims);
@@ -313,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     db.ref('lockers').on('value', snapshot => {
       if (!snapshot.exists()) {
         console.error('No lockers data found');
-        lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="7">No lockers data available</td></tr>';
+        lockersTable.querySelector('tbody').innerHTML = '<tr><td colspan="8">No lockers data available</td></tr>';
         return;
       }
       console.log('Lockers snapshot:', snapshot.val());
@@ -326,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const data = lockerData.current;
         const user = lockerData.user || {};
+        const status = lockerData.status || 'vacant';
         const row = `<tr>
           <td class="border p-2">${locker.key}</td>
           <td class="border p-2">Temperature: ${data.temperature.toFixed(1)}°C</td>
@@ -333,6 +349,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="border p-2">Gas Level: ${data.gasLevel.toFixed(1)}%</td>
           <td class="border p-2">Weight: ${data.weight.toFixed(1)}g</td>
           <td class="border p-2">Status: ${data.isOpen ? 'Open' : 'Closed'}</td>
+          <td class="border p-2">
+            <select onchange="updateLockerStatus('${locker.key}', this.value)" class="border p-1 rounded bg-white text-sky-700">
+              <option value="vacant" ${status === 'vacant' ? 'selected' : ''}>Vacant</option>
+              <option value="occupied" ${status === 'occupied' ? 'selected' : ''}>Occupied</option>
+              <option value="vacant&&for maintenance" ${status === 'vacant&&for maintenance' ? 'selected' : ''}>Vacant & For Maintenance</option>
+              <option value="occupied&&for maintenance" ${status === 'occupied&&for maintenance' ? 'selected' : ''}>Occupied & For Maintenance</option>
+            </select>
+          </td>
           <td class="border p-2">
             <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button>
             <button onclick="deleteLockerData('${locker.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Reset</button>
@@ -343,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, error => {
       console.error('Error reading lockers:', error);
-      lockersTable.querySelector('tbody').innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`;
+      lockersTable.querySelector('tbody').innerHTML = `<tr><td colspan="8">Error: ${error.message}</td></tr>`;
     });
 
     db.ref('users').on('value', snapshot => {
