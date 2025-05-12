@@ -172,12 +172,6 @@ function promptUpdateLockerPassword(locker, currentPassword) {
   }
 }
 
-// Ensure the function is available globally
-if (typeof window.promptUpdateLockerPassword === 'undefined') {
-  window.promptUpdateLockerPassword = promptUpdateLockerPassword;
-  console.warn('promptUpdateLockerPassword was not defined in window, added manually');
-}
-
 function updateLockerStatus(locker, currentStatus) {
   const newStatus = prompt('Enter new status (vacant/occupied/vacant&&for maintenance/occupied&&for maintenance)', currentStatus);
   const validStatuses = ['vacant', 'occupied', 'vacant&&for maintenance', 'occupied&&for maintenance'];
@@ -191,6 +185,67 @@ function updateLockerStatus(locker, currentStatus) {
   } else if (newStatus) {
     alert('Invalid status. Please use: vacant, occupied, vacant&&for maintenance, or occupied&&for maintenance');
   }
+}
+
+function showLockerHistory(locker) {
+  const modal = document.getElementById('history-modal');
+  const modalTitle = document.getElementById('modal-locker-title');
+  const modalHistoryList = document.getElementById('modal-history-list');
+  const clearHistoryButton = document.getElementById('clear-history-button');
+
+  modalTitle.textContent = `History for ${locker}`;
+  modalHistoryList.innerHTML = '<li>Loading...</li>';
+  modal.style.display = 'block';
+
+  window.db.ref(`lockers/${locker}/history/events`).once('value', snapshot => {
+    modalHistoryList.innerHTML = '';
+    if (!snapshot.exists()) {
+      modalHistoryList.innerHTML = '<li>No history events found</li>';
+      return;
+    }
+    snapshot.forEach(entry => {
+      const data = entry.val();
+      const formattedDate = new Date(data.timestamp).toLocaleString();
+      const eventText = data.value !== undefined ? `${data.event}: ${data.value}` : data.event;
+      const listItem = `<li>${eventText} at ${formattedDate}</li>`;
+      modalHistoryList.innerHTML += listItem;
+    });
+  }, error => {
+    console.error(`Error reading history for ${locker}:`, error);
+    modalHistoryList.innerHTML = `<li>Error: ${error.message}</li>`;
+  });
+
+  clearHistoryButton.onclick = () => clearLockerHistory(locker);
+}
+
+function clearLockerHistory(locker) {
+  if (confirm('Are you sure you want to clear all history events for this locker? This action cannot be undone.')) {
+    window.db.ref(`lockers/${locker}/history/events`).remove()
+      .then(() => {
+        console.log(`History cleared for ${locker}`);
+        alert('History cleared successfully');
+        showLockerHistory(locker); // Refresh the modal to show the empty state
+      })
+      .catch(error => {
+        console.error(`Failed to clear history for ${locker}:`, error);
+        alert(`Failed to clear history: ${error.message}`);
+      });
+  }
+}
+
+function closeModal() {
+  const modal = document.getElementById('history-modal');
+  modal.style.display = 'none';
+}
+
+// Ensure the function is available globally
+if (typeof window.promptUpdateLockerPassword === 'undefined') {
+  window.promptUpdateLockerPassword = promptUpdateLockerPassword;
+  console.warn('promptUpdateLockerPassword was not defined in window, added manually');
+}
+if (typeof window.showLockerHistory === 'undefined') {
+  window.showLockerHistory = showLockerHistory;
+  console.warn('showLockerHistory was not defined in window, added manually');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -361,6 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <button onclick="toggleLocker('${locker.key}', ${!data.isOpen})" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">${data.isOpen ? 'Close' : 'Open'}</button>
             <button onclick="deleteLockerData('${locker.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Reset</button>
             <button onclick="promptUpdateLockerPassword('${locker.key}', '${user.password || ''}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Update Password</button>
+          </td>
+          <td class="border p-2">
+            <button onclick="showLockerHistory('${locker.key}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">View History</button>
           </td>
         </tr>`;
         lockersTable.querySelector('tbody').innerHTML += row;
