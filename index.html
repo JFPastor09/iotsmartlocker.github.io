@@ -15,16 +15,28 @@
       overflow-x: auto;
     }
     .history-list {
-      max-height: 300px;
+      max-height: 350px; /* Increased slightly for better visibility */
       overflow-y: auto;
     }
-    @media (max-width: 640px) {
-      .table-container th:nth-child(7), .table-container td:nth-child(7) {
-        min-width: 150px;
+    /* Improved table cell padding and minimum width */
+    .table-container th, .table-container td {
+      padding: 12px; /* Increased padding for better spacing */
+      min-width: 120px; /* Ensure columns don't get too cramped */
+    }
+    @media (max-width: 768px) {
+      .table-container th, .table-container td {
+        padding: 8px; /* Slightly reduced padding on smaller screens */
+        min-width: 100px; /* Adjust minimum width for smaller screens */
+        font-size: 0.875rem; /* Smaller font size for better fit */
+      }
+      .table-container th:nth-child(7), .table-container td:nth-child(7),
+      .table-container th:nth-child(8), .table-container td:nth-child(8) {
+        min-width: 150px; /* Ensure action and history columns have enough space */
       }
     }
     .history-list li {
-      font-size: 0.875rem;
+      font-size: 1rem; /* Slightly larger font size for readability */
+      line-height: 1.5; /* Better line spacing */
     }
     /* Modal styles */
     .modal {
@@ -39,18 +51,18 @@
     }
     .modal-content {
       background-color: #fff;
-      margin: 15% auto;
-      padding: 20px;
+      margin: 10% auto; /* Adjusted margin for better centering */
+      padding: 24px; /* Increased padding for better spacing */
       border: 1px solid #888;
       width: 80%;
-      max-width: 500px;
-      border-radius: 5px;
+      max-width: 600px; /* Increased max-width to match wider dashboard */
+      border-radius: 8px; /* Slightly larger border radius for a softer look */
       position: relative;
     }
     .close {
       color: #aaa;
       float: right;
-      font-size: 28px;
+      font-size: 32px; /* Slightly larger for better visibility */
       font-weight: bold;
       cursor: pointer;
     }
@@ -62,34 +74,34 @@
     }
   </style>
 </head>
-<body class="bg-yellow-100 flex flex-col items-center min-h-screen p-4">
-  <div id="login" class="w-full max-w-md bg-yellow-300 p-6 rounded-lg shadow-md">
-    <h1 class="text-3xl font-bold mb-4 text-center text-sky-700">IoT Locker</h1>
-    <h2 class="text-2xl font-bold mb-4 text-center text-sky-700">Login</h2>
-    <div class="mb-4">
-      <label for="email" class="block text-sm font-medium text-sky-700">Email:</label>
-      <input id="email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin@lockers.com">
+<body class="bg-yellow-100 flex flex-col items-center min-h-screen p-6">
+  <div id="login" class="w-full max-w-md bg-yellow-300 p-8 rounded-lg shadow-md">
+    <h1 class="text-4xl font-bold mb-6 text-center text-sky-700">IoT Locker</h1>
+    <h2 class="text-3xl font-bold mb-6 text-center text-sky-700">Login</h2>
+    <div class="mb-6">
+      <label for="email" class="block text-base font-medium text-sky-700">Email:</label>
+      <input id="email" type="email" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin@lockers.com">
     </div>
-    <div class="mb-4">
-      <label for="password" class="block text-sm font-medium text-sky-700">Password:</label>
-      <input id="password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin123">
+    <div class="mb-6">
+      <label for="password" class="block text-base font-medium text-sky-700">Password:</label>
+      <input id="password" type="password" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200" value="admin123">
     </div>
-    <div class="mb-4 flex items-center">
+    <div class="mb-6 flex items-center">
       <input type="checkbox" id="admin-login" class="mr-2 border-sky-300 focus:ring-sky-200">
-      <label for="admin-login" class="text-sm text-sky-700">Log in as Admin</label>
+      <label for="admin-login" class="text-base text-sky-700">Log in as Admin</label>
     </div>
-    <button id="login-button" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Login</button>
-    <p id="error" class="text-orange-600 mt-2 text-center"></p>
+    <button id="login-button" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200">Login</button>
+    <p id="error" class="text-orange-600 mt-3 text-center text-base"></p>
   </div>
 
-  <div id="dashboard" class="hidden w-full max-w-4xl bg-yellow-200 p-6 rounded-lg shadow-md mt-4">
-    <h1 class="text-3xl font-bold mb-4 text-center text-sky-700">IoT Locker</h1>
-    <h1 id="dashboard-header" class="text-2xl font-bold mb-4 text-center text-sky-700"></h1>
-    <button id="logout-button" class="w-full bg-orange-400 text-white p-2 rounded-md hover:bg-orange-500 transition duration-200 mb-4">Logout</button>
+  <div id="dashboard" class="hidden w-full max-w-6xl bg-yellow-200 p-8 rounded-lg shadow-md mt-6">
+    <h1 class="text-4xl font-bold mb-6 text-center text-sky-700">IoT Locker</h1>
+    <h1 id="dashboard-header" class="text-3xl font-bold mb-6 text-center text-sky-700"></h1>
+    <button id="logout-button" class="w-full bg-orange-400 text-white p-3 rounded-md hover:bg-orange-500 transition duration-200 mb-6">Logout</button>
 
     <div id="admin-panel" class="hidden">
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Lockers Data</h2>
-      <div class="table-container mb-4">
+      <h2 class="text-2xl font-semibold mb-4 text-sky-700">Lockers Data</h2>
+      <div class="table-container mb-6">
         <table id="lockers-table" class="w-full border-collapse border border-sky-300">
           <thead>
             <tr class="bg-sky-100">
@@ -100,7 +112,7 @@
               <th class="border p-2 text-sky-700">Weight</th>
               <th class="border p-2 text-sky-700">Locker Status</th>
               <th class="border p-2 text-sky-700">Occupancy Status</th>
-              <th class="border p-2 text-sky-700">Control</th>
+              <th class="border p-2 text-sky-700"> </th>
               <th class="border p-2 text-sky-700">History</th>
             </tr>
           </thead>
@@ -108,12 +120,12 @@
         </table>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
-      <div class="history-list mb-4 p-2 bg-sky-50 border rounded-md border-sky-200">
+      <h2 class="text-2xl font-semibold mb-4 text-sky-700">History Events</h2>
+      <div class="history-list mb-6 p-3 bg-sky-50 border rounded-md border-sky-200">
         <ul id="admin-history-list" class="list-disc pl-5 text-sky-800"></ul>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Users</h2>
+      <h2 class="text-2xl font-semibold mb-4 text-sky-700">Users</h2>
       <div class="table-container">
         <table id="users-table" class="w-full border-collapse border border-sky-300">
           <thead>
@@ -131,34 +143,34 @@
     </div>
 
     <div id="user-panel" class="hidden">
-      <p id="current-email" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="new-email" class="block text-sm font-medium text-sky-700">New Email:</label>
-        <input id="new-email" type="email" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updateEmail()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Email</button>
+      <p id="current-email" class="mb-3 text-sky-800 text-lg"></p>
+      <div class="mb-6">
+        <label for="new-email" class="block text-base font-medium text-sky-700">New Email:</label>
+        <input id="new-email" type="email" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-3">
+        <button onclick="updateEmail()" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200">Update Email</button>
       </div>
-      <p id="current-password" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="new-password" class="block text-sm font-medium text-sky-700">New Website Password:</label>
-        <input id="new-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updatePassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Password</button>
+      <p id="current-password" class="mb-3 text-sky-800 text-lg"></p>
+      <div class="mb-6">
+        <label for="new-password" class="block text-base font-medium text-sky-700">New Website Password:</label>
+        <input id="new-password" type="password" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-3">
+        <button onclick="updatePassword()" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200">Update Password</button>
       </div>
-      <p id="user-locker-info" class="mb-2 text-sky-800"></p>
-      <div class="mb-4">
-        <label for="locker-password" class="block text-sm font-medium text-sky-700">New Locker Password:</label>
-        <input id="locker-password" type="password" class="w-full p-2 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-2">
-        <button onclick="updateLockerPassword()" class="w-full bg-sky-500 text-white p-2 rounded-md hover:bg-sky-600 transition duration-200">Update Locker Password</button>
+      <p id="user-locker-info" class="mb-3 text-sky-800 text-lg"></p>
+      <div class="mb-6">
+        <label for="locker-password" class="block text-base font-medium text-sky-700">New Locker Password:</label>
+        <input id="locker-password" type="password" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-3">
+        <button onclick="updateLockerPassword()" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200">Update Locker Password</button>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">Locker Data</h2>
-      <div class="table-container mb-4">
+      <h2 class="text-2xl font-semibold mb-4 text-sky-700">Locker Data</h2>
+      <div class="table-container mb-6">
         <table id="user-locker-table" class="w-full border-collapse border border-sky-300">
           <tbody></tbody>
         </table>
       </div>
 
-      <h2 class="text-xl font-semibold mb-2 text-sky-700">History Events</h2>
-      <div class="history-list p-2 bg-sky-50 border rounded-md border-sky-200">
+      <h2 class="text-2xl font-semibold mb-4 text-sky-700">History Events</h2>
+      <div class="history-list p-3 bg-sky-50 border rounded-md border-sky-200">
         <ul id="user-history-list" class="list-disc pl-5 text-sky-800"></ul>
       </div>
     </div>
@@ -167,12 +179,12 @@
   <!-- Modal for displaying locker history -->
   <div id="history-modal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2 id="modal-locker-title" class="text-xl font-semibold mb-2 text-sky-700"></h2>
-      <div class="history-list p-2 bg-sky-50 border rounded-md border-sky-200">
+      <span class="close" onclick="closeModal()">×</span>
+      <h2 id="modal-locker-title" class="text-2xl font-semibold mb-4 text-sky-700"></h2>
+      <div class="history-list p-3 bg-sky-50 border rounded-md border-sky-200">
         <ul id="modal-history-list" class="list-disc pl-5 text-sky-800"></ul>
       </div>
-      <button id="clear-history-button" class="mt-4 bg-orange-400 text-white p-2 rounded-md hover:bg-orange-500 transition duration-200">Clear History</button>
+      <button id="clear-history-button" class="mt-4 bg-orange-400 text-white p-3 rounded-md hover:bg-orange-500 transition duration-200">Clear History</button>
     </div>
   </div>
 
