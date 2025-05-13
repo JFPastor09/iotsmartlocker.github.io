@@ -134,6 +134,8 @@
               <th class="border p-2 text-sky-700">Website Password</th>
               <th class="border p-2 text-sky-700">Role</th>
               <th class="border p-2 text-sky-700">Locker</th>
+              <th class="border p-2 text-sky-700">Phone Number</th>
+              <th class="border p-2 text-sky-700">Notifications</th>
               <th class="border p-2 text-sky-700">Actions</th>
             </tr>
           </thead>
@@ -160,6 +162,16 @@
         <label for="locker-password" class="block text-base font-medium text-sky-700">New Locker Password:</label>
         <input id="locker-password" type="password" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-3">
         <button onclick="updateLockerPassword()" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200">Update Locker Password</button>
+      </div>
+      <div class="mb-6">
+        <label for="user-phone" class="block text-base font-medium text-sky-700">Phone Number:</label>
+        <input id="user-phone" type="text" class="w-full p-3 border rounded-md border-sky-300 focus:border-sky-500 focus:ring focus:ring-sky-200 mb-3" placeholder="+12345678901">
+        <label>
+          Notifications:
+          <input type="checkbox" id="user-notifications-enabled" class="mr-2" checked>
+          <span class="text-sky-700">Enabled</span>
+        </label>
+        <button id="update-user-details-btn" class="w-full bg-sky-500 text-white p-3 rounded-md hover:bg-sky-600 transition duration-200 mt-3">Update Details</button>
       </div>
 
       <h2 class="text-2xl font-semibold mb-4 text-sky-700">Locker Data</h2>
