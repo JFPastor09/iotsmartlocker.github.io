@@ -54,13 +54,17 @@ function updateUser(uid, email, role, locker) {
   const newRole = prompt('Enter role (admin/user)', role);
   const newLocker = prompt('Enter locker (locker1/locker2/locker3/null)', locker || '');
   const newPassword = prompt('Enter new website password', '');
+  const newPhone = prompt('Enter phone number (e.g., +12345678901 or leave blank)', '');
+  const newNotificationsEnabled = confirm('Enable notifications? (Cancel for false)');
   if (newEmail && newRole) {
     if (window.db && window.firebase) {
       window.db.ref(`users/${uid}`).update({
         email: newEmail,
         role: newRole,
         locker: newLocker || null,
-        password: newPassword || null
+        password: newPassword || null,
+        phoneNumber: newPhone || null,
+        notificationsEnabled: newNotificationsEnabled
       }).catch(error => console.error(`User update failed for ${uid}:`, error));
       window.firebase.auth().updateUser(uid, { email: newEmail }).catch(error => console.error(error));
       window.firebase.auth().setCustomUserClaims(uid, { role: newRole }).catch(error => console.error(`Claims update failed for ${uid}:`, error));
@@ -93,8 +97,6 @@ function updatePassword() {
         window.auth.signOut().then(() => {
           document.getElementById('login').style.display = 'block';
           document.getElementById('dashboard').style.display = 'none';
-          document.getElementById('admin-panel').style.display = 'none';
-          document.getElementById('user-panel').style.display = 'none';
         });
       } else {
         alert(error.message);
@@ -126,8 +128,6 @@ function updateEmail() {
         window.auth.signOut().then(() => {
           document.getElementById('login').style.display = 'block';
           document.getElementById('dashboard').style.display = 'none';
-          document.getElementById('admin-panel').style.display = 'none';
-          document.getElementById('user-panel').style.display = 'none';
         });
       } else {
         alert(error.message);
@@ -437,6 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <td class="border p-2">${data.password || 'Not set'}</td>
           <td class="border p-2">${data.role}</td>
           <td class="border p-2">${data.locker || 'None'}</td>
+          <td class="border p-2">${data.phoneNumber || 'Not set'}</td>
+          <td class="border p-2">${data.notificationsEnabled ? 'Enabled' : 'Disabled'}</td>
           <td class="border p-2">
             <button onclick="updateUser('${user.key}', '${data.email}', '${data.role}', '${data.locker}')" class="bg-sky-500 text-white px-2 py-1 rounded hover:bg-sky-600 transition duration-200">Edit</button>
             <button onclick="deleteUser('${user.key}')" class="bg-orange-400 text-white px-2 py-1 rounded hover:bg-orange-500 transition duration-200">Delete</button>
@@ -480,8 +482,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('user-locker-table');
     const lockerInfo = document.getElementById('user-locker-info');
     const userHistoryList = document.getElementById('user-history-list');
+    const userPhone = document.getElementById('user-phone');
+    const userNotificationsEnabled = document.getElementById('user-notifications-enabled');
+    const updateUserDetailsBtn = document.getElementById('update-user-details-btn');
 
-    db.ref(`users/${uid}`).once('value', snapshot => {
+    db.ref(`users/${uid}`).on('value', snapshot => {
       const data = snapshot.val();
       if (!data) {
         console.error('No user data found for UID:', uid);
@@ -492,6 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       console.log('User data:', data);
       lockerInfo.textContent = `Assigned Locker: ${data.locker || 'None'}`;
+      userPhone.value = data.phoneNumber || '';
+      userNotificationsEnabled.checked = data.notificationsEnabled !== false;
       
       if (data.locker) {
         const locker = data.locker;
@@ -533,6 +540,20 @@ document.addEventListener('DOMContentLoaded', () => {
       lockerInfo.textContent = 'Error reading user data';
       table.innerHTML = '<tr><td colspan="6">Error reading user data</td></tr>';
       userHistoryList.innerHTML = '<li>Error reading user data</li>';
+    });
+
+    updateUserDetailsBtn.addEventListener('click', () => {
+      const newPhone = userPhone.value.trim();
+      const newNotificationsEnabled = userNotificationsEnabled.checked;
+      db.ref(`users/${uid}`).update({
+        phoneNumber: newPhone || null,
+        notificationsEnabled: newNotificationsEnabled
+      }).then(() => {
+        alert('User details updated successfully!');
+      }).catch(error => {
+        console.error(`Failed to update user details for ${uid}:`, error);
+        alert(`Failed to update user details: ${error.message}`);
+      });
     });
   }
 
