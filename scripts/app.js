@@ -543,17 +543,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateUserDetailsBtn.addEventListener('click', () => {
-      const newPhone = userPhone.value.trim();
-      const newNotificationsEnabled = userNotificationsEnabled.checked;
-      db.ref(`users/${uid}`).update({
-        phoneNumber: newPhone || null,
-        notificationsEnabled: newNotificationsEnabled
-      }).then(() => {
-        alert('User details updated successfully!');
-      }).catch(error => {
-        console.error(`Failed to update user details for ${uid}:`, error);
-        alert(`Failed to update user details: ${error.message}`);
-      });
+      // Ensure the update only applies to the authenticated user's UID
+      if (window.auth.currentUser && window.auth.currentUser.uid === uid) {
+        const newPhone = userPhone.value.trim();
+        const newNotificationsEnabled = userNotificationsEnabled.checked;
+        db.ref(`users/${uid}`).update({
+          phoneNumber: newPhone || null,
+          notificationsEnabled: newNotificationsEnabled
+        }).then(() => {
+          alert('User details updated successfully!');
+        }).catch(error => {
+          console.error(`Failed to update user details for ${uid}:`, error);
+          alert(`Failed to update user details: ${error.message}`);
+        });
+      } else {
+        alert('You can only update your own phone number and notification settings.');
+        console.error('Unauthorized attempt to update phone number for another user');
+      }
     });
   }
 
